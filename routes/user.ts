@@ -18,7 +18,7 @@ router.post('/',
         check('profileId', 'Profile id is required').not().isEmpty(),
         validateFields
     ],
-    validateJWT,
+    // validateJWT,
     saveUser);
 router.put('/:id', 
     [

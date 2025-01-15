@@ -90,7 +90,7 @@ const getUserByUsername = (req, res) => __awaiter(void 0, void 0, void 0, functi
 exports.getUserByUsername = getUserByUsername;
 const saveUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { username, password, email, roleId } = req.body;
+        const { username, password, email, profileId } = req.body;
         const encryptedPassword = yield (0, password_1.encryptPassword)(password);
         const newUser = yield prisma.user.upsert({
             create: { username, password: encryptedPassword, email, profileId, active: 1 },
@@ -115,7 +115,7 @@ const updateUserById = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const { id } = req.params;
         const idNumber = parseInt(id, 10);
-        const { username, password, email, roleId } = req.body;
+        const { username, password, email, profileId } = req.body;
         const encryptedPassword = yield (0, password_1.encryptPassword)(password);
         ;
         if (!id || isNaN(idNumber))
