@@ -1,6 +1,7 @@
 import express, { Application }  from 'express';
 import userRoutes from '../routes/user';
 import rolesRoutes from '../routes/role';
+import profilesRoutes from '../routes/profile';
 import authRoutes from '../routes/auth';
 import paramsRoutes from '../routes/param';
 import cors from 'cors';
@@ -12,6 +13,7 @@ class Server{
   private apiPaths = {
     users: '/api/users',
     roles: '/api/roles',
+    profiles: '/api/profiles',
     auth: '/api/auth',
     params: '/api/params',
 }
@@ -38,6 +40,7 @@ class Server{
   routes (){
       this.app.use(this.apiPaths.users, userRoutes);
       this.app.use(this.apiPaths.roles, rolesRoutes);
+      this.app.use(this.apiPaths.profiles, profilesRoutes);
       this.app.use(this.apiPaths.auth, authRoutes);
       this.app.use(this.apiPaths.params, paramsRoutes);
   }

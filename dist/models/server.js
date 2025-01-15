@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const user_1 = __importDefault(require("../routes/user"));
 const role_1 = __importDefault(require("../routes/role"));
+const profile_1 = __importDefault(require("../routes/profile"));
 const auth_1 = __importDefault(require("../routes/auth"));
 const param_1 = __importDefault(require("../routes/param"));
 const cors_1 = __importDefault(require("cors"));
@@ -14,6 +15,7 @@ class Server {
         this.apiPaths = {
             users: '/api/users',
             roles: '/api/roles',
+            profiles: '/api/profiles',
             auth: '/api/auth',
             params: '/api/params',
         };
@@ -36,6 +38,7 @@ class Server {
     routes() {
         this.app.use(this.apiPaths.users, user_1.default);
         this.app.use(this.apiPaths.roles, role_1.default);
+        this.app.use(this.apiPaths.profiles, profile_1.default);
         this.app.use(this.apiPaths.auth, auth_1.default);
         this.app.use(this.apiPaths.params, param_1.default);
     }

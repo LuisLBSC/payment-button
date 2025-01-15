@@ -11,8 +11,8 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-
 
 model User{
   id Int @id @default(autoincrement())
@@ -20,9 +20,19 @@ model User{
   password    String
   email       String    @unique
   active      Int?      @default(1)
-  roles       UserRole[]
+  profileId   Int
+  profile     Profile   @relation(fields: [profileId], references: [id]) 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model Profile {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  active      Int?      @default(1)
+  users       User[]
+  roles       ProfileRole[]
 }
 
 model Role {
@@ -30,14 +40,14 @@ model Role {
   name        String    @unique
   description String?
   active      Int?      @default(1)
-  users       UserRole[]
+  profiles    ProfileRole[]
 }
 
-model UserRole {
+model ProfileRole {
   id          Int       @id @default(autoincrement())
-  userId      Int
+  profileId   Int
   roleId      Int
-  user        User      @relation(fields: [userId], references: [id])
+  profile     Profile   @relation(fields: [profileId], references: [id])
   role        Role      @relation(fields: [roleId], references: [id])
   assignedAt  DateTime  @default(now())
 }

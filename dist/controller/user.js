@@ -15,10 +15,7 @@ const password_1 = require("../helpers/password");
 const prisma = new client_1.PrismaClient();
 const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const users = yield prisma.user.findMany({
-            where: { active: 1 },
-            include: { roles: true }
-        });
+        const users = yield prisma.user.findMany({ where: { active: 1 } });
         res.json({
             msg: 'ok',
             error: false,
@@ -41,10 +38,7 @@ const getUserById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber))
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        const existingUser = yield prisma.user.findFirst({
-            where: { id: idNumber },
-            include: { roles: true }
-        });
+        const existingUser = yield prisma.user.findFirst({ where: { id: idNumber } });
         if (!existingUser)
             res.status(404).json({ msg: 'User not found', error: false, data: [] });
         else {
@@ -71,10 +65,7 @@ const getUserByUsername = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const { username } = req.body;
         if (!username)
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        const existingUser = yield prisma.user.findFirst({
-            where: { username },
-            include: { roles: true }
-        });
+        const existingUser = yield prisma.user.findFirst({ where: { username } });
         if (!existingUser) {
             res.status(404).json({ msg: 'User not found', error: false, data: [] });
         }
@@ -101,68 +92,15 @@ const saveUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { username, password, email, roleId } = req.body;
         const encryptedPassword = yield (0, password_1.encryptPassword)(password);
-        const existingUser = yield prisma.user.findUnique({
-            where: { username },
-            include: { roles: true }
+        const newUser = yield prisma.user.upsert({
+            create: { username, password: encryptedPassword, email, profileId, active: 1 },
+            update: { username, password: encryptedPassword, email, profileId, active: 1 },
+            where: { username }
         });
-        if (existingUser) {
-            const existingRole = existingUser.roles.find((role) => role.roleId === roleId);
-            if (existingRole) {
-                const updatedUser = yield prisma.user.update({
-                    where: { username },
-                    data: {
-                        password: encryptedPassword,
-                        email,
-                        active: 1
-                    }
-                });
-                res.json({
-                    updatedUser,
-                    msg: `User ${updatedUser.username} updated with existing role`
-                });
-            }
-            else {
-                const updatedUser = yield prisma.user.update({
-                    where: { username },
-                    data: {
-                        password: encryptedPassword,
-                        email,
-                        active: 1,
-                        roles: {
-                            create: [
-                                {
-                                    roleId
-                                }
-                            ]
-                        }
-                    }
-                });
-                res.json({
-                    updatedUser,
-                    msg: `User ${updatedUser.username} updated and new role assigned`
-                });
-            }
-        }
-        else {
-            const newUser = yield prisma.user.create({
-                data: {
-                    username,
-                    password: encryptedPassword,
-                    email,
-                    roles: {
-                        create: [
-                            {
-                                roleId
-                            }
-                        ]
-                    }
-                }
-            });
-            res.json({
-                newUser,
-                msg: `User ${newUser.username} created`
-            });
-        }
+        res.json({
+            newUser,
+            msg: `User ${newUser.username} created`
+        });
     }
     catch (error) {
         console.log(error);
@@ -188,50 +126,23 @@ const updateUserById = (req, res) => __awaiter(void 0, void 0, void 0, function*
         });
         if (!existingUser)
             res.status(404).json({ msg: 'User not found', error: false, data: [] });
-        const existingRole = existingUser.roles.find((role) => role.roleId === roleId);
-        if (existingRole) {
-            const updatedUser = yield prisma.user.update({
-                where: {
-                    id: idNumber
-                },
-                data: {
-                    username,
-                    password: encryptedPassword,
-                    email
-                }
-            });
-            res.status(200).json({
-                updatedUser,
-                msg: `User ${username} updated with existing role`,
-                error: false,
-                records: 1
-            });
-        }
-        else {
-            const updatedUser = yield prisma.user.update({
-                where: {
-                    id: idNumber
-                },
-                data: {
-                    username,
-                    password: encryptedPassword,
-                    email,
-                    roles: {
-                        create: [
-                            {
-                                roleId
-                            }
-                        ]
-                    }
-                }
-            });
-            res.status(200).json({
-                updatedUser,
-                msg: `User ${username} updated and new role assigned`,
-                error: false,
-                records: 1
-            });
-        }
+        const updatedUser = yield prisma.user.update({
+            where: {
+                id: idNumber
+            },
+            data: {
+                username,
+                password: encryptedPassword,
+                email,
+                profileId,
+            }
+        });
+        res.status(200).json({
+            updatedUser,
+            msg: `User ${username} updated`,
+            error: false,
+            records: 1
+        });
     }
     catch (error) {
         console.log(error);
