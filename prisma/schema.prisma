@@ -36,55 +36,67 @@ model Profile {
 }
 
 model Role {
-  id              Int         @id @default(autoincrement())
-  name            String      @unique
-  description     String?
-  active          Int?        @default(1)
-  profiles        ProfileRole[]
+  id                      Int         @id @default(autoincrement())
+  name                    String      @unique
+  description             String?
+  active                  Int?        @default(1)
+  profiles                ProfileRole[]
 }
 
 model ProfileRole {
-  id              Int         @id @default(autoincrement())
-  profileId       Int
-  roleId          Int
-  profile         Profile     @relation(fields: [profileId], references: [id])
-  role            Role        @relation(fields: [roleId], references: [id])
-  assignedAt      DateTime    @default(now())
+  id                      Int         @id @default(autoincrement())
+  profileId               Int
+  roleId                  Int
+  profile                 Profile     @relation(fields: [profileId], references: [id])
+  role                    Role        @relation(fields: [roleId], references: [id])
+  assignedAt              DateTime    @default(now())
 }
 
 model Param {
-  id              Int         @id @default(autoincrement())
-  key             String      @unique
-  value           String
-  active          Int?        @default(1)
+  id                      Int         @id @default(autoincrement())
+  key                     String      @unique
+  value                   String
+  active                  Int?        @default(1)
 }
 
 model Debt {
-  id              Int         @id @default(autoincrement())
-  customerId      Int
-  customer        User        @relation(fields: [customerId], references: [id])
-  value           Float
-  tax             Float?
-  discount        Float?
-  maxPayDate      DateTime
-  createdAt       DateTime    @default(now())
+  id                      Int         @id @default(autoincrement())
+  customerId              Int
+  customer                User        @relation(fields: [customerId], references: [id])
+  value                   Float
+  tax                     Float?
+  discount                Float?
+  maxPayDate              DateTime
+  createdAt               DateTime    @default(now())
 }
 
 model Payment {
-  id              Int         @id @default(autoincrement())
-  customerId      Int
-  customer        User        @relation(fields: [customerId], references: [id])
-  paymentDate     DateTime
-  paymentMethod   String
-  value           Float
-  tax             Float?
-  discount        Float?
-  pinpadId        String?
-  voucherNumber   String?
-  invoiceNumber   String?
-  ip              String?
-  transactionId   Int
-  debtId          Int
-  debt            Debt        @relation(fields: [debtId], references: [id])
-  createdAt       DateTime    @default(now())
+  id                      Int         @id @default(autoincrement())
+  customerId              Int
+  customer                User        @relation(fields: [customerId], references: [id])
+  checkout_id             String
+  result_description      String?
+  transaction_id          String?
+  payment_type            String?
+  payment_brand            String?
+  amount                  Float
+  merchant_transactionId  Int?
+  result_code             String?
+  extended_description    String?
+  acquirer_response       String?
+  batch_no                String?
+  interest                Float?
+  total_amount            Float?
+  reference_no            String?
+  bin                     String?
+  last_4_Digits           String?
+  email                   String?
+  shopper_mid             String?
+  shopper_tid             String?
+  request_json text       String?
+  response_json text      String?
+  status                  Int?
+  --debtId              Int
+  --debt                Debt        @relation(fields: [debtId], references: [id])
+  updated_at              DateTime    @default(now())
 }
