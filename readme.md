@@ -32,6 +32,7 @@
 ## VERSION=0.0.1
 ## APPNAME="PAYMENT-BUTTON"
 ## SECRETKEY=45205688-08fc-4683-8800-f84b84a24604
-## DATABASE_URL="postgresql://postgres:admin@localhost:5432/postgres?schema=dev"
+## DATABASE_URL="postgresql://postgres.bmalarijzdkevnmhklln:payment-button-dev@aws-0-us-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+## DIRECT_URL="postgresql://postgres.bmalarijzdkevnmhklln:payment-button-dev@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
 ## EMAIL=""
 ## PASSWORD="" //remember: create an application password to use send emails option, for this project I use gmail
