@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateJWT = void 0;
+exports.validateAuthStatus = exports.validateJWT = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const validateJWT = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const token = req.header('auth-token') || '';
@@ -33,4 +33,25 @@ const validateJWT = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.validateJWT = validateJWT;
+const validateAuthStatus = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.header('auth-token') || '';
+    if (!token) {
+        return res.status(401).json({
+            msg: 'Non-Authenticated'
+        });
+    }
+    try {
+        jsonwebtoken_1.default.verify(token, process.env.SECRETKEY || '');
+        return res.status(200).json({
+            msg: 'Authenticated'
+        });
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(401).json({
+            msg: 'Invalid token'
+        });
+    }
+});
+exports.validateAuthStatus = validateAuthStatus;
 //# sourceMappingURL=validate-jwt.js.map

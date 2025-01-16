@@ -5,6 +5,7 @@ const auth_1 = require("../controller/auth");
 const user_1 = require("../controller/user");
 const express_validator_1 = require("express-validator");
 const validate_fields_1 = require("../middlewares/validate-fields");
+const validate_jwt_1 = require("../middlewares/validate-jwt");
 const router = (0, express_1.Router)();
 router.post('/login', [
     (0, express_validator_1.check)('username', 'Username is required').not().isEmpty(),
@@ -27,5 +28,6 @@ router.post('/resetPassword', [
     }),
     validate_fields_1.validateFields
 ], auth_1.resetPassword);
+router.get('/checkAuthStatus', validate_jwt_1.validateAuthStatus);
 exports.default = router;
 //# sourceMappingURL=auth.js.map
