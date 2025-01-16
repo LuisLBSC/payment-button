@@ -3,22 +3,25 @@ import { login, resetPassword } from "../controller/auth";
 import { getUserByUsername } from "../controller/user";
 import { check} from "express-validator";
 import { validateFields } from "../middlewares/validate-fields";
+import { validateAuthStatus } from "../middlewares/validate-jwt";
 const router = Router();
 
 router.post('/login', 
     [
         check('username', 'Username is required').not().isEmpty(),
         check('password', 'Password is required').not().isEmpty(),
-        validateFields
+        validateFields as ()=>void
     ],
-    login);
+    login as any);
+    
 router.post('/forgotPassword',
     [
         check('username', 'Username is required').not().isEmpty(), 
-        validateFields
+        validateFields as ()=>void
     ],
     getUserByUsername
 );
+
 router.post('/resetPassword',
     [
         check('id', 'Id es required').not().isEmpty(),
@@ -30,9 +33,12 @@ router.post('/resetPassword',
             }
             return true; 
         }),
-        validateFields
+        validateFields as ()=>void
     ],
-    resetPassword
+    resetPassword as any
+)
+router.get('/checkAuthStatus',
+    validateAuthStatus as any,
 )
 
 export default router;
