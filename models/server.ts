@@ -4,6 +4,7 @@ import rolesRoutes from '../routes/role';
 import profilesRoutes from '../routes/profile';
 import authRoutes from '../routes/auth';
 import paramsRoutes from '../routes/param';
+import debtRoutes from '../routes/debt';
 import cors from 'cors';
 
 class Server{
@@ -14,6 +15,7 @@ class Server{
     users: '/api/users',
     roles: '/api/roles',
     profiles: '/api/profiles',
+    debt: '/api/debt',
     auth: '/api/auth',
     params: '/api/params',
 }
@@ -43,6 +45,7 @@ class Server{
       this.app.use(this.apiPaths.profiles, profilesRoutes);
       this.app.use(this.apiPaths.auth, authRoutes);
       this.app.use(this.apiPaths.params, paramsRoutes);
+      this.app.use(this.apiPaths.debt, debtRoutes);
   }
   
   listen(){

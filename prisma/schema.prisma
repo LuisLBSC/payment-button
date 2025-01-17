@@ -11,7 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  //directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -62,56 +62,55 @@ model Param {
 }
 
 model Debt {
-  id                      Int       @id @default(autoincrement())
-  customerId              Int
-  customer                User      @relation(fields: [customerId], references: [id])
-  title_name              String?
-  liquidation_code        String
-  debt_date               DateTime
-  shopper_name            String
-  identification          Int?
-  court_costs             Int?
-  local_code              String
-  plot_id                 Int
-  action_liquidation_type Int
-  liquidation_state       Int
-  year                    Int
-  surcharge               Float?    @default(0)
-  discount                Float?    @default(0)
-  interest                Float?    @default(0)
-  coercive                Float?    @default(0)
-  total_amount            Float
-  createdAt               DateTime  @default(now())
-  Payment                 Payment[]
+  id                    Int       @id @default(autoincrement())
+  customerId            Int
+  customer              User      @relation(fields: [customerId], references: [id])
+  titleName             String?
+  liquidationCode       String
+  debtDate              DateTime
+  shopperName           String
+  identification        Int?
+  courtCosts            Int?
+  localCode             String
+  plotId                Int
+  actionLiquidationType Int
+  liquidationState      Int
+  year                  Int
+  surcharge             Float?    @default(0)
+  discount              Float?    @default(0)
+  interest              Float?    @default(0)
+  coercive              Float?    @default(0)
+  totalAmount           Float
+  createdAt             DateTime  @default(now())
+  Payment               Payment[]
 }
 
 model Payment {
-  id                     Int      @id @default(autoincrement())
-  customerId             Int
-  customer               User     @relation(fields: [customerId], references: [id])
-  checkout_id            String   @unique
-  result_description     String?
-  transaction_id         String?
-  payment_type           String?
-  payment_brand          String?
-  amount                 Float
-  merchant_transactionId Int?
-  result_code            String?
-  extended_description   String?
-  acquirer_response      String?
-  batch_no               String?
-  interest               Float?
-  total_amount           Float?
-  reference_no           String?
-  bin                    String?
-  last_4_Digits          String?
-  email                  String?
-  shopper_mid            String?
-  shopper_tid            String?
-  request_json           String?
-  response_json          String?
-  status                 Int?
-  debtId                 Int
-  debt                   Debt     @relation(fields: [debtId], references: [id])
-  updated_at             DateTime @default(now())
+  id             Int             @id @default(autoincrement())
+  customerId     Int
+  customer       User            @relation(fields: [customerId], references: [id])
+  debtId         Int
+  debt           Debt            @relation(fields: [debtId], references: [id])
+  cashier        Int             @default(30)
+  observation    String?
+  macAddressUser String?
+  ipSession      String?
+  paymentDate    DateTime        @default(now())
+  receiptNumber  Int             @unique
+  createdAt      DateTime        @default(now())
+  PaymentDetail  PaymentDetail[]
+}
+
+model PaymentDetail {
+  id                 Int      @id @default(autoincrement())
+  paymentId          Int
+  payment            Payment  @relation(fields: [paymentId], references: [id])
+  bank_id            Int
+  cardNumber         String   @db.VarChar
+  cardExpirationDate String   @db.VarChar
+  cardAuthorization  String   @db.VarChar
+  cardVoucherNumber  String   @db.VarChar
+  cardHolderName     String   @db.VarChar
+  message            String
+  createdAt          DateTime @default(now())
 }

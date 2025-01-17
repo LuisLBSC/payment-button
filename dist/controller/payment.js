@@ -60,63 +60,32 @@ const getPaymentById = (req, res) => __awaiter(void 0, void 0, void 0, function*
 exports.getPaymentById = getPaymentById;
 const savePayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { customerId, checkout_id, result_description, transaction_id, payment_type, payment_brand, amount, merchant_transactionId, result_code, extended_description, acquirer_response, batch_no, interest, total_amount, reference_no, bin, last_4_Digits, email, shopper_mid, shopper_tid, request_json, response_json, status } = req.body;
+        const ipSession = req.ip;
+        const { customerId, debtId, cashier, observation, macAddressUser, receiptNumber } = req.body;
         const newPayment = yield prisma.payment.upsert({
             create: {
                 customerId,
-                checkout_id,
-                result_description,
-                transaction_id,
-                payment_type,
-                payment_brand,
-                amount,
-                merchant_transactionId,
-                result_code,
-                extended_description,
-                acquirer_response,
-                batch_no,
-                interest,
-                total_amount,
-                reference_no,
-                bin,
-                last_4_Digits,
-                email,
-                shopper_mid,
-                shopper_tid,
-                request_json,
-                response_json,
-                status
+                debtId,
+                cashier,
+                observation,
+                macAddressUser,
+                ipSession,
+                receiptNumber
             },
             update: {
                 customerId,
-                checkout_id,
-                result_description,
-                transaction_id,
-                payment_type,
-                payment_brand,
-                amount,
-                merchant_transactionId,
-                result_code,
-                extended_description,
-                acquirer_response,
-                batch_no,
-                interest,
-                total_amount,
-                reference_no,
-                bin,
-                last_4_Digits,
-                email,
-                shopper_mid,
-                shopper_tid,
-                request_json,
-                response_json,
-                status
+                debtId,
+                cashier,
+                observation,
+                macAddressUser,
+                ipSession,
+                receiptNumber
             },
-            where: { checkout_id }
+            where: { receiptNumber }
         });
         res.json({
             newPayment,
-            msg: `Payment with checkout_id ${newPayment.checkout_id} processed`
+            msg: `Payment with checkout_id ${newPayment.receiptNumber} processed`
         });
     }
     catch (error) {
@@ -132,7 +101,8 @@ const updatePaymentById = (req, res) => __awaiter(void 0, void 0, void 0, functi
     try {
         const { id } = req.params;
         const idNumber = parseInt(id, 10);
-        const { customerId, checkout_id, result_description, transaction_id, payment_type, payment_brand, amount, merchant_transactionId, result_code, extended_description, acquirer_response, batch_no, interest, total_amount, reference_no, bin, last_4_Digits, email, shopper_mid, shopper_tid, request_json, response_json, status } = req.body;
+        const ipSession = req.ip;
+        const { customerId, debtId, cashier, observation, macAddressUser, receiptNumber } = req.body;
         if (!id || isNaN(idNumber))
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingPayment = yield prisma.payment.findFirst({ where: { id: idNumber } });
@@ -144,33 +114,17 @@ const updatePaymentById = (req, res) => __awaiter(void 0, void 0, void 0, functi
             },
             data: {
                 customerId,
-                checkout_id,
-                result_description,
-                transaction_id,
-                payment_type,
-                payment_brand,
-                amount,
-                merchant_transactionId,
-                result_code,
-                extended_description,
-                acquirer_response,
-                batch_no,
-                interest,
-                total_amount,
-                reference_no,
-                bin,
-                last_4_Digits,
-                email,
-                shopper_mid,
-                shopper_tid,
-                request_json,
-                response_json,
-                status
+                debtId,
+                cashier,
+                observation,
+                macAddressUser,
+                ipSession,
+                receiptNumber
             }
         });
         res.status(200).json({
             updatedPayment,
-            msg: `Payment with checkout_id ${updatedPayment.checkout_id} updated`,
+            msg: `Payment with checkout_id ${updatedPayment.receiptNumber} updated`,
             error: false,
             records: 1
         });

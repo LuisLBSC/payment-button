@@ -9,6 +9,7 @@ const role_1 = __importDefault(require("../routes/role"));
 const profile_1 = __importDefault(require("../routes/profile"));
 const auth_1 = __importDefault(require("../routes/auth"));
 const param_1 = __importDefault(require("../routes/param"));
+const debt_1 = __importDefault(require("../routes/debt"));
 const cors_1 = __importDefault(require("cors"));
 class Server {
     constructor() {
@@ -16,6 +17,7 @@ class Server {
             users: '/api/users',
             roles: '/api/roles',
             profiles: '/api/profiles',
+            debt: '/api/debt',
             auth: '/api/auth',
             params: '/api/params',
         };
@@ -41,6 +43,7 @@ class Server {
         this.app.use(this.apiPaths.profiles, profile_1.default);
         this.app.use(this.apiPaths.auth, auth_1.default);
         this.app.use(this.apiPaths.params, param_1.default);
+        this.app.use(this.apiPaths.debt, debt_1.default);
     }
     listen() {
         this.app.listen(this.port, () => {
