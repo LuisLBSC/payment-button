@@ -9,9 +9,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  //directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -25,6 +25,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   Payment   Payment[]
+  Debt      Debt[]
 }
 
 model Profile {
@@ -60,11 +61,10 @@ model Param {
   active Int?   @default(1)
 }
 
-
 model Debt {
-  id                      Int         @id @default(autoincrement())
+  id                      Int       @id @default(autoincrement())
   customerId              Int
-  customer                User        @relation(fields: [customerId], references: [id])
+  customer                User      @relation(fields: [customerId], references: [id])
   title_name              String?
   liquidation_code        String
   debt_date               DateTime
@@ -76,12 +76,13 @@ model Debt {
   action_liquidation_type Int
   liquidation_state       Int
   year                    Int
-  surcharge               Float?     @default(0) 
-  discount                Float?     @default(0) 
-  interest                Float?     @default(0) 
-  coercive                Float?     @default(0)
+  surcharge               Float?    @default(0)
+  discount                Float?    @default(0)
+  interest                Float?    @default(0)
+  coercive                Float?    @default(0)
   total_amount            Float
-  createdAt               DateTime    @default(now())
+  createdAt               DateTime  @default(now())
+  Payment                 Payment[]
 }
 
 model Payment {
@@ -111,6 +112,6 @@ model Payment {
   response_json          String?
   status                 Int?
   debtId                 Int
-  debt                   Debt        @relation(fields: [debtId], references: [id])
+  debt                   Debt     @relation(fields: [debtId], references: [id])
   updated_at             DateTime @default(now())
 }
