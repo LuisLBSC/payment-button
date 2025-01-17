@@ -65,6 +65,7 @@ model Debt {
   id                    Int       @id @default(autoincrement())
   customerId            Int
   customer              User      @relation(fields: [customerId], references: [id])
+  liquidationId         Int
   titleName             String?
   liquidationCode       String
   debtDate              DateTime
