@@ -21,6 +21,9 @@ router.post('/forgotPassword',
     ],
     getUserByUsername
 );
+router.get('/checkAuthStatus',
+    validateAuthStatus,
+)
 
 router.post('/resetPassword',
     [
@@ -37,8 +40,6 @@ router.post('/resetPassword',
     ],
     resetPassword as any
 )
-router.get('/checkAuthStatus',
-    validateAuthStatus as any,
-)
+
 
 export default router;

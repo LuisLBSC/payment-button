@@ -16,6 +16,7 @@ router.post('/forgotPassword', [
     (0, express_validator_1.check)('username', 'Username is required').not().isEmpty(),
     validate_fields_1.validateFields
 ], user_1.getUserByUsername);
+router.get('/checkAuthStatus', validate_jwt_1.validateAuthStatus);
 router.post('/resetPassword', [
     (0, express_validator_1.check)('id', 'Id es required').not().isEmpty(),
     (0, express_validator_1.check)('password', 'Password is required').not().isEmpty(),
@@ -28,6 +29,5 @@ router.post('/resetPassword', [
     }),
     validate_fields_1.validateFields
 ], auth_1.resetPassword);
-router.get('/checkAuthStatus', validate_jwt_1.validateAuthStatus);
 exports.default = router;
 //# sourceMappingURL=auth.js.map
