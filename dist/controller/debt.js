@@ -15,7 +15,13 @@ const prisma = new client_1.PrismaClient();
 const getAllDebtsByUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.body;
-        const { liquidationId, titleName, liquidationCode, identification, courtCosts, localCode, plotId, actionLiquidationType, liquidationState, year } = req.query;
+        const { liquidationId, titleName, liquidationCode, identification, courtCosts, localCode, plotId, actionLiquidationType, liquidationState, year } = req.body;
+        if (!id) {
+            return res.status(400).json({
+                msg: 'customerId is required',
+                error: true
+            });
+        }
         const filters = { customerId: id };
         if (liquidationId)
             filters.liquidationId = parseInt(liquidationId, 10);

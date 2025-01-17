@@ -17,7 +17,14 @@ export const getAllDebtsByUser = async(req: Request, res: Response) => {
             actionLiquidationType,
             liquidationState,
             year
-        } = req.query;
+        } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                msg: 'customerId is required',
+                error: true
+            });
+        }
 
         const filters: any = { customerId: id };
         if (liquidationId) filters.liquidationId = parseInt(liquidationId as string, 10);
