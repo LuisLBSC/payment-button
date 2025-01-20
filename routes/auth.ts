@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, resetPassword } from "../controller/auth";
+import { login, resendVerificationEmail, resetPassword, signUp, verifyAccount } from "../controller/auth";
 import { getUserByUsername } from "../controller/user";
 import { check} from "express-validator";
 import { validateFields } from "../middlewares/validate-fields";
@@ -41,5 +41,19 @@ router.post('/resetPassword',
     resetPassword as any
 )
 
+router.post('/signUp',
+    check('username', 'Username is required').not().isEmpty(),
+    check('password', 'Password is required').not().isEmpty(),
+    check('email', 'Email is required').not().isEmpty(),
+    check('profileId', 'ProfileId is required').not().isEmpty(),
+    validateFields as ()=>void,
+    signUp as any
+)
+router.get('/verifyAccount/:verifiedToken', verifyAccount as any);
+
+router.post('/resendVerificationEmail', 
+    check('email', 'Email is required').not().isEmpty(),
+    validateFields as ()=>void,
+    resendVerificationEmail as any);
 
 export default router;

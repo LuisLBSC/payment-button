@@ -19,6 +19,10 @@ model User {
   username  String    @unique
   password  String
   email     String    @unique
+  name      String?
+  lastname  String?
+  verified  Int?      @default(0)
+  verifiedToken String?
   active    Int?      @default(1)
   profileId Int
   profile   Profile   @relation(fields: [profileId], references: [id])

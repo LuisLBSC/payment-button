@@ -83,11 +83,11 @@ export const getUserByUsername = async(req: Request, res: Response) => {
 
 export const saveUser = async(req: Request, res: Response) => {
     try {
-        const {username, password, email, profileId} = req.body; 
+        const {username, password, name, lastname, email, profileId} = req.body; 
         const encryptedPassword = await encryptPassword(password);
         const newUser = await prisma.user.upsert({
-            create: {username, password: encryptedPassword, email, profileId, active: 1},
-            update: {username, password: encryptedPassword, email, profileId, active: 1},
+            create: {username, password: encryptedPassword, email, name, lastname, profileId, active: 1},
+            update: {username, password: encryptedPassword, email, name, lastname, profileId, active: 1},
             where: {username}
         });
         res.json({
@@ -107,14 +107,11 @@ export const updateUserById = async(req: Request, res: Response) => {
     try {
         const {id} = req.params;
         const idNumber = parseInt(id, 10);
-        const {username, password, email, profileId} = req.body;
+        const {username, password, email, name, lastname, profileId} = req.body;
         const encryptedPassword = await encryptPassword(password);;
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         
-        const existingUser = await prisma.user.findFirst({
-            where: {id: idNumber},
-            include: { roles: true }
-        });
+        const existingUser = await prisma.user.findFirst({where: {id: idNumber}});
         
         if(!existingUser)
             res.status(404).json({msg: 'User not found', error: false, data:[]});
@@ -126,7 +123,9 @@ export const updateUserById = async(req: Request, res: Response) => {
             data: {
                 username, 
                 password: encryptedPassword, 
-                email, 
+                email,
+                name,
+                lastname,
                 profileId,
             }
         });
