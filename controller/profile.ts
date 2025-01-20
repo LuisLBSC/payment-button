@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export const getAllProfiles = async(req: Request, res: Response) => {
     try {
-        const profiles = await prisma.profile.findMany({where: {active : 1}, include: { roles: true }});
+        const profiles = await prisma.profile.findMany({where: {active : 1}, include: { roles: {include: { role: { include: { roleDetails: true } } } } }});
         res.json({
             msg: 'ok',
             error: false,
@@ -28,7 +28,7 @@ export const getProfileById = async(req: Request, res: Response) => {
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         
-        const existingProfile = await prisma.profile.findFirst({where: {id: idNumber}, include: { roles: true }});
+        const existingProfile = await prisma.profile.findFirst({where: {id: idNumber}, include: { roles: {include: { role: { include: { roleDetails: true } } } } }});
         
         if(!existingProfile)
             res.status(404).json({msg: 'Profile not found', error: false, data:[]});

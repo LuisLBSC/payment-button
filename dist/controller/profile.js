@@ -14,7 +14,7 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getAllProfiles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const profiles = yield prisma.profile.findMany({ where: { active: 1 }, include: { roles: true } });
+        const profiles = yield prisma.profile.findMany({ where: { active: 1 }, include: { roles: { include: { role: { include: { roleDetails: true } } } } } });
         res.json({
             msg: 'ok',
             error: false,
@@ -37,7 +37,7 @@ const getProfileById = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber))
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        const existingProfile = yield prisma.profile.findFirst({ where: { id: idNumber }, include: { roles: true } });
+        const existingProfile = yield prisma.profile.findFirst({ where: { id: idNumber }, include: { roles: { include: { role: { include: { roleDetails: true } } } } } });
         if (!existingProfile)
             res.status(404).json({ msg: 'Profile not found', error: false, data: [] });
         res.json({
