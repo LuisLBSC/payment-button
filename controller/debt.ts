@@ -5,38 +5,19 @@ const prisma = new PrismaClient();
 
 export const getAllDebtsByUser = async(req: Request, res: Response) => {
     try {
-        const {id} = req.body;
         const {
-            liquidationId,
-            titleName,
             liquidationCode,
-            identification,
-            courtCosts,
             localCode,
-            plotId,
             actionLiquidationType,
-            liquidationState,
-            year
-        } = req.body;
+            ext
+        } = req.query;
 
-        if (!id) {
-            return res.status(400).json({
-                msg: 'customerId is required',
-                error: true
-            });
-        }
-
-        const filters: any = { customerId: id };
-        if (liquidationId) filters.liquidationId = parseInt(liquidationId as string, 10);
-        if (titleName) filters.titleName = { contains: titleName, mode: 'insensitive' };
+        const filters: any = {};
+        let localCodeExt = localCode;
+        if (ext && ext.length > 0) localCodeExt = localCodeExt?.concat(` LC:${ext}`);
         if (liquidationCode) filters.liquidationCode = { contains: liquidationCode, mode: 'insensitive' };
-        if (identification) filters.identification = parseInt(identification as string, 10);
-        if (courtCosts) filters.courtCosts = parseInt(courtCosts as string, 10);
-        if (localCode) filters.localCode = { contains: localCode, mode: 'insensitive' };
-        if (plotId) filters.plotId = parseInt(plotId as string, 10);
+        if (localCode) filters.localCode = { contains: localCodeExt, mode: 'insensitive' };
         if (actionLiquidationType) filters.actionLiquidationType = parseInt(actionLiquidationType as string, 10);
-        if (liquidationState) filters.liquidationState = parseInt(liquidationState as string, 10);
-        if (year) filters.year = parseInt(year as string, 10);
 
         const debts = await prisma.debt.findMany({where: filters});
 
@@ -87,7 +68,6 @@ export const getDebtById = async(req: Request, res: Response) => {
 export const saveDebt = async(req: Request, res: Response) => {
     try {
         const {
-            customerId,
             liquidationId,
             titleName,
             liquidationCode,
@@ -109,7 +89,6 @@ export const saveDebt = async(req: Request, res: Response) => {
 
         const newDebt = await prisma.debt.create({
             data: {
-                customerId,
                 liquidationId,
                 titleName,
                 liquidationCode,

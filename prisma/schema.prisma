@@ -15,21 +15,25 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  username  String    @unique
-  password  String
-  email     String    @unique
-  name      String?
-  lastname  String?
-  verified  Int?      @default(0)
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
+  password      String
+  email         String    @unique
+  name          String?
+  middleName    String?
+  lastname      String?
+  phone         String?   @db.VarChar(10)
+  address       String?
+  country       String?
+  postCode      String?
+  verified      Int?      @default(0)
   verifiedToken String?
-  active    Int?      @default(1)
-  profileId Int
-  profile   Profile   @relation(fields: [profileId], references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Payment   Payment[]
-  Debt      Debt[]
+  active        Int?      @default(1)
+  profileId     Int
+  profile       Profile   @relation(fields: [profileId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  Payment       Payment[]
 }
 
 model Profile {
@@ -50,12 +54,13 @@ model Role {
   profiles    ProfileRole[]
 }
 
-model RoleDetail{
-  id          Int       @id @default(autoincrement())
-  roleId      Int
-  role        Role   @relation(fields: [roleId], references: [id]) 
-  entity      String
-  active      Int?    @default(1)
+model RoleDetail {
+  id     Int    @id @default(autoincrement())
+  roleId Int
+  role   Role   @relation(fields: [roleId], references: [id])
+  entity String
+  active Int?   @default(1)
+
   @@unique([roleId, entity])
 }
 
@@ -77,8 +82,6 @@ model Param {
 
 model Debt {
   id                    Int       @id @default(autoincrement())
-  customerId            Int
-  customer              User      @relation(fields: [customerId], references: [id])
   liquidationId         Int
   titleName             String?
   liquidationCode       String
@@ -129,3 +132,17 @@ model PaymentDetail {
   message            String
   createdAt          DateTime @default(now())
 }
+
+model ParamsRequest {
+  entityId String @id @unique
+  token    String
+  mId      String
+  tId      String
+  currency String
+}
+
+model Transaction {
+  id    Int    @id @unique
+  state String
+}
+

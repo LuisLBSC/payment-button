@@ -14,35 +14,17 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getAllDebtsByUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id } = req.body;
-        const { liquidationId, titleName, liquidationCode, identification, courtCosts, localCode, plotId, actionLiquidationType, liquidationState, year } = req.body;
-        if (!id) {
-            return res.status(400).json({
-                msg: 'customerId is required',
-                error: true
-            });
-        }
-        const filters = { customerId: id };
-        if (liquidationId)
-            filters.liquidationId = parseInt(liquidationId, 10);
-        if (titleName)
-            filters.titleName = { contains: titleName, mode: 'insensitive' };
+        const { liquidationCode, localCode, actionLiquidationType, ext } = req.query;
+        const filters = {};
+        let localCodeExt = localCode;
+        if (ext && ext.length > 0)
+            localCodeExt = localCodeExt === null || localCodeExt === void 0 ? void 0 : localCodeExt.concat(` LC:${ext}`);
         if (liquidationCode)
             filters.liquidationCode = { contains: liquidationCode, mode: 'insensitive' };
-        if (identification)
-            filters.identification = parseInt(identification, 10);
-        if (courtCosts)
-            filters.courtCosts = parseInt(courtCosts, 10);
         if (localCode)
-            filters.localCode = { contains: localCode, mode: 'insensitive' };
-        if (plotId)
-            filters.plotId = parseInt(plotId, 10);
+            filters.localCode = { contains: localCodeExt, mode: 'insensitive' };
         if (actionLiquidationType)
             filters.actionLiquidationType = parseInt(actionLiquidationType, 10);
-        if (liquidationState)
-            filters.liquidationState = parseInt(liquidationState, 10);
-        if (year)
-            filters.year = parseInt(year, 10);
         const debts = yield prisma.debt.findMany({ where: filters });
         res.json({
             msg: 'ok',
@@ -88,10 +70,9 @@ const getDebtById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 exports.getDebtById = getDebtById;
 const saveDebt = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { customerId, liquidationId, titleName, liquidationCode, debtDate, shopperName, identification, courtCosts, localCode, plotId, actionLiquidationType, liquidationState, year, surcharge, discount, interest, coercive, totalAmount } = req.body;
+        const { liquidationId, titleName, liquidationCode, debtDate, shopperName, identification, courtCosts, localCode, plotId, actionLiquidationType, liquidationState, year, surcharge, discount, interest, coercive, totalAmount } = req.body;
         const newDebt = yield prisma.debt.create({
             data: {
-                customerId,
                 liquidationId,
                 titleName,
                 liquidationCode,
