@@ -220,7 +220,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
         }
         const params = { entityId };
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}/${checkoutId}/payment`;
-        const { data } = yield axios_1.default.post(url, {}, {
+        const { data } = yield axios_1.default.get(url, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -243,7 +243,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
             });
             yield prisma.transaction.update({
                 where: {
-                    id: transaction === null || transaction === void 0 ? void 0 : transaction.id, // Asegurarse de que id no sea undefined
+                    id: transaction === null || transaction === void 0 ? void 0 : transaction.id,
                 },
                 data: {
                     state: 'S'
@@ -259,7 +259,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
         }
         else {
             return res.status(404).json({
-                msg: 'Unsuccessful payment',
+                msg: `Unsuccessful payment: ${data.result.description}`,
                 error: true,
                 data
             });

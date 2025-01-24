@@ -226,7 +226,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
 
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}/${checkoutId}/payment`;
 
-        const { data } = await axios.post(url, {},
+        const { data } = await axios.get(url,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -253,7 +253,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
 
             await prisma.transaction.update({
                 where: {
-                    id: transaction?.id, // Asegurarse de que id no sea undefined
+                    id: transaction?.id,
                 },
                 data: {
                     state: 'S'
@@ -269,7 +269,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
             });
         } else {
             return res.status(404).json({
-                msg: 'Unsuccessful payment',
+                msg: `Unsuccessful payment: ${data.result.description}`,
                 error: true,
                 data
             });
