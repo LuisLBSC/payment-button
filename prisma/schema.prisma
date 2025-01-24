@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -75,7 +75,7 @@ model Param {
 }
 
 model Debt {
-  id                    Int       @id @default(autoincrement())
+  id                    Int           @id @default(autoincrement())
   titleName             String?
   liquidationCode       String
   debtDate              DateTime
@@ -87,14 +87,15 @@ model Debt {
   actionLiquidationType Int
   liquidationState      Int
   year                  Int
-  surcharge             Float?    @default(0)
-  discount              Float?    @default(0)
-  interest              Float?    @default(0)
-  coercive              Float?    @default(0)
+  surcharge             Float?        @default(0)
+  discount              Float?        @default(0)
+  interest              Float?        @default(0)
+  coercive              Float?        @default(0)
   totalAmount           Float
-  createdAt             DateTime  @default(now())
+  createdAt             DateTime      @default(now())
   liquidationId         Int
   Payment               Payment[]
+  Transaction           Transaction[]
 }
 
 model Payment {
@@ -107,10 +108,11 @@ model Payment {
   macAddressUser String?
   observation    String?
   paymentDate    DateTime        @default(now())
-  receiptNumber  Int             @unique
+  receiptNumber  String          @unique
   customer       User            @relation(fields: [customerId], references: [id])
   debt           Debt            @relation(fields: [debtId], references: [id])
   PaymentDetail  PaymentDetail[]
+  Transaction    Transaction[]
 }
 
 model PaymentDetail {
@@ -127,15 +129,12 @@ model PaymentDetail {
   payment            Payment  @relation(fields: [paymentId], references: [id])
 }
 
-model ParamsRequest {
-  entityId String @id @unique
-  token    String
-  mId      String
-  tId      String
-  currency String
-}
-
 model Transaction {
-  id    Int    @id @unique
-  state String
+  id         String  @id @unique
+  checkoutId String?
+  debtId     Int
+  debt       Debt    @relation(fields: [debtId], references: [id])
+  paymentId  Int
+  payment    Payment @relation(fields: [paymentId], references: [id])
+  state      String
 }

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {requestCheckout}  from "../controller/paymentButton";
+import {requestCheckout, savePaymentWithCheckoutId}  from "../controller/paymentButton";
 import { validateJWT } from "../middlewares/validate-jwt";
 import { check } from "express-validator";
 import { validateFields } from "../middlewares/validate-fields";
@@ -11,7 +11,14 @@ router.post('/requestCheckout',
         check('debtId', 'Name is required').not().isEmpty(),
         validateFields
     ],
-    //validateJWT,
+    validateJWT,
     requestCheckout);
+router.post('/savePayment', 
+    [
+        check('checkoutId', 'Name is required').not().isEmpty(),
+        validateFields
+    ],
+    validateJWT,
+    savePaymentWithCheckoutId);
 
 export default router;

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requestCheckout = void 0;
+exports.savePaymentWithCheckoutId = exports.requestCheckout = void 0;
 const client_1 = require("@prisma/client");
 const axios_1 = __importDefault(require("axios"));
 const querystring_1 = __importDefault(require("querystring"));
@@ -46,7 +46,6 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             acc[key] = param.value;
             return acc;
         }, {});
-        req.ip;
         const { entityId, token, mid, tid, currency } = paramsMap;
         const missingParams = [];
         if (!entityId)
@@ -68,6 +67,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         const base0 = 0;
         const base15 = 0.15;
         const tax = (debt === null || debt === void 0 ? void 0 : debt.totalAmount) * base15;
+        const transaction = `transaction#${Date.now()}`;
         const query = querystring_1.default.stringify({
             entityId,
             amount: debt === null || debt === void 0 ? void 0 : debt.totalAmount,
@@ -78,7 +78,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             'customer.surname': customer.lastname,
             'customer.ip': req.ip,
             'customer.merchantCustomerId': customer.id.toString(),
-            'merchantTransactionId': `transaction_${Date.now()}`,
+            'merchantTransactionId': transaction,
             'customer.email': customer.email,
             'customer.identificationDocType': 'IDCARD',
             'customer.identificationDocId': customer.username,
@@ -109,20 +109,169 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             },
             httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
         });
-        console.log({ data });
-        return res.status(200).json({
-            msg: 'ok',
-            error: false,
-            data,
-        });
+        if (data.id) {
+            const existingPayment = yield prisma.payment.findFirst({
+                where: {
+                    debtId: debt.id,
+                    receiptNumber: data.id,
+                }
+            });
+            if (existingPayment) {
+                const updatedPayment = yield prisma.payment.update({
+                    where: { id: existingPayment.id },
+                    data: {
+                        customerId,
+                        observation: '',
+                        macAddressUser: '',
+                        ipSession: req.ip,
+                    }
+                });
+                const newTransaction = yield prisma.transaction.create({
+                    data: {
+                        id: transaction,
+                        state: 'P',
+                        checkoutId: data.id,
+                        debtId: debt.id,
+                        paymentId: updatedPayment.id,
+                    }
+                });
+            }
+            else {
+                const newPayment = yield prisma.payment.create({
+                    data: {
+                        customerId,
+                        debtId,
+                        cashier: 30,
+                        observation: '',
+                        macAddressUser: '',
+                        ipSession: req.ip,
+                        receiptNumber: data.id
+                    }
+                });
+                const newTransaction = yield prisma.transaction.create({
+                    data: {
+                        id: transaction,
+                        state: 'P',
+                        checkoutId: data.id,
+                        debtId: debt.id,
+                        paymentId: newPayment.id
+                    }
+                });
+            }
+            return res.status(200).json({
+                msg: 'ok',
+                error: false,
+                data: {
+                    id: data.id
+                },
+            });
+        }
+        else {
+            return res.status(404).json({
+                msg: 'Error getting checkoutId',
+                error: true,
+                data,
+            });
+        }
     }
     catch (error) {
         console.error(error);
         return res.status(500).json({
-            msg: 'Error al crear el checkout',
-            error,
+            msg: 'Something went wrong',
+            error
         });
     }
 });
 exports.requestCheckout = requestCheckout;
+const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { checkoutId } = req.body;
+        if (!checkoutId) {
+            return res.status(400).json({
+                msg: 'checkoutId is required',
+                error: true,
+            });
+        }
+        const transaction = yield prisma.transaction.findFirst({ where: { checkoutId }, });
+        const requestParams = yield prisma.param.findMany({
+            where: {
+                key: {
+                    startsWith: 'request_',
+                },
+            },
+        });
+        const paramsMap = requestParams.reduce((acc, param) => {
+            const key = param.key.replace('request_', '');
+            acc[key] = param.value;
+            return acc;
+        }, {});
+        const { entityId, token } = paramsMap;
+        const missingParams = [];
+        if (!entityId)
+            missingParams.push('entityId');
+        if (!token)
+            missingParams.push('token');
+        if (missingParams.length > 0) {
+            return res.status(400).json({
+                msg: `Missing required parameters: ${missingParams.join(', ')}`,
+                error: true,
+            });
+        }
+        const params = { entityId };
+        const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}/${checkoutId}/payment`;
+        const { data } = yield axios_1.default.post(url, {}, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            params,
+            httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
+        });
+        if (data.card) {
+            const { card, result, resultDetails } = data;
+            const newPaymentDetail = yield prisma.paymentDetail.create({
+                data: {
+                    paymentId: (_a = transaction === null || transaction === void 0 ? void 0 : transaction.paymentId) !== null && _a !== void 0 ? _a : 0,
+                    bank_id: 1,
+                    cardNumber: card.last4Digits,
+                    cardExpirationDate: `${card.expiryMonth.slice(-2)}${card.expiryYear.toString().slice(-2)}`,
+                    cardAuthorization: resultDetails.code,
+                    cardVoucherNumber: resultDetails.ConnectorTxID1,
+                    cardHolderName: card.holder,
+                    message: result.description,
+                },
+            });
+            yield prisma.transaction.update({
+                where: {
+                    id: transaction === null || transaction === void 0 ? void 0 : transaction.id, // Asegurarse de que id no sea undefined
+                },
+                data: {
+                    state: 'S'
+                }
+            });
+            return res.status(200).json({
+                msg: 'ok',
+                error: false,
+                data: {
+                    id: data.id
+                },
+            });
+        }
+        else {
+            return res.status(404).json({
+                msg: 'Unsuccessful payment',
+                error: true,
+                data
+            });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            msg: 'Something went wrong',
+            error
+        });
+    }
+});
+exports.savePaymentWithCheckoutId = savePaymentWithCheckoutId;
 //# sourceMappingURL=paymentButton.js.map
