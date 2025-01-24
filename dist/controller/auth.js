@@ -99,7 +99,7 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 exports.resetPassword = resetPassword;
 const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { username, password, email, name, middleName, lastname, phone, address, country, postCode, profileId } = req.body;
+        const { username, password, email, name, middlename, lastname, phone, address, country, postCode, profileId } = req.body;
         if (!username || !password)
             return res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingUser = yield prisma.user.findFirst({ where: { username: username, active: 1 } });
@@ -113,7 +113,7 @@ const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 password: encryptedPassword,
                 email,
                 name,
-                middleName,
+                middlename,
                 lastname,
                 phone,
                 address,

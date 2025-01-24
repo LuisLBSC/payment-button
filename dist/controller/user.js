@@ -90,11 +90,36 @@ const getUserByUsername = (req, res) => __awaiter(void 0, void 0, void 0, functi
 exports.getUserByUsername = getUserByUsername;
 const saveUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { username, password, name, lastname, email, profileId } = req.body;
+        const { username, password, email, name, middlename, lastname, phone, address, country, postCode, profileId } = req.body;
         const encryptedPassword = yield (0, password_1.encryptPassword)(password);
         const newUser = yield prisma.user.upsert({
-            create: { username, password: encryptedPassword, email, name, lastname, profileId, active: 1 },
-            update: { username, password: encryptedPassword, email, name, lastname, profileId, active: 1 },
+            create: {
+                username,
+                password: encryptedPassword,
+                email,
+                name,
+                middlename,
+                lastname,
+                phone,
+                address,
+                country,
+                postCode,
+                profileId,
+                active: 1
+            },
+            update: {
+                username,
+                password: encryptedPassword,
+                email,
+                name,
+                middlename,
+                lastname,
+                phone,
+                address,
+                country,
+                postCode,
+                active: 1
+            },
             where: { username }
         });
         res.json({
@@ -115,7 +140,7 @@ const updateUserById = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const { id } = req.params;
         const idNumber = parseInt(id, 10);
-        const { username, password, email, name, lastname, profileId } = req.body;
+        const { username, password, email, name, middlename, lastname, phone, address, country, postCode, profileId } = req.body;
         const encryptedPassword = yield (0, password_1.encryptPassword)(password);
         ;
         if (!id || isNaN(idNumber))
@@ -132,7 +157,12 @@ const updateUserById = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 password: encryptedPassword,
                 email,
                 name,
+                middlename,
                 lastname,
+                phone,
+                address,
+                country,
+                postCode,
                 profileId,
             }
         });

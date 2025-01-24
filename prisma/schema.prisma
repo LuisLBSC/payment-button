@@ -1,16 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -19,21 +13,21 @@ model User {
   username      String    @unique
   password      String
   email         String    @unique
-  name          String?
-  middleName    String?
-  lastname      String?
-  phone         String?   @db.VarChar(10)
-  address       String?
-  country       String?
-  postCode      String?
-  verified      Int?      @default(0)
-  verifiedToken String?
   active        Int?      @default(1)
-  profileId     Int
-  profile       Profile   @relation(fields: [profileId], references: [id])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  profileId     Int
+  verified      Int?      @default(0)
+  verifiedToken String?
+  lastname      String
+  name          String
+  address       String?
+  country       String?
+  middlename    String
+  phone         String?   @db.VarChar(10)
+  postCode      String?
   Payment       Payment[]
+  profile       Profile   @relation(fields: [profileId], references: [id])
 }
 
 model Profile {
@@ -41,8 +35,8 @@ model Profile {
   name        String        @unique
   description String?
   active      Int?          @default(1)
-  users       User[]
   roles       ProfileRole[]
+  users       User[]
 }
 
 model Role {
@@ -50,16 +44,16 @@ model Role {
   name        String        @unique
   description String?
   active      Int?          @default(1)
-  roleDetails RoleDetail[]
   profiles    ProfileRole[]
+  roleDetails RoleDetail[]
 }
 
 model RoleDetail {
   id     Int    @id @default(autoincrement())
   roleId Int
-  role   Role   @relation(fields: [roleId], references: [id])
   entity String
   active Int?   @default(1)
+  role   Role   @relation(fields: [roleId], references: [id])
 
   @@unique([roleId, entity])
 }
@@ -68,9 +62,9 @@ model ProfileRole {
   id         Int      @id @default(autoincrement())
   profileId  Int
   roleId     Int
+  assignedAt DateTime @default(now())
   profile    Profile  @relation(fields: [profileId], references: [id])
   role       Role     @relation(fields: [roleId], references: [id])
-  assignedAt DateTime @default(now())
 }
 
 model Param {
@@ -82,7 +76,6 @@ model Param {
 
 model Debt {
   id                    Int       @id @default(autoincrement())
-  liquidationId         Int
   titleName             String?
   liquidationCode       String
   debtDate              DateTime
@@ -100,29 +93,29 @@ model Debt {
   coercive              Float?    @default(0)
   totalAmount           Float
   createdAt             DateTime  @default(now())
+  liquidationId         Int
   Payment               Payment[]
 }
 
 model Payment {
   id             Int             @id @default(autoincrement())
   customerId     Int
-  customer       User            @relation(fields: [customerId], references: [id])
-  debtId         Int
-  debt           Debt            @relation(fields: [debtId], references: [id])
   cashier        Int             @default(30)
-  observation    String?
-  macAddressUser String?
+  createdAt      DateTime        @default(now())
+  debtId         Int
   ipSession      String?
+  macAddressUser String?
+  observation    String?
   paymentDate    DateTime        @default(now())
   receiptNumber  Int             @unique
-  createdAt      DateTime        @default(now())
+  customer       User            @relation(fields: [customerId], references: [id])
+  debt           Debt            @relation(fields: [debtId], references: [id])
   PaymentDetail  PaymentDetail[]
 }
 
 model PaymentDetail {
   id                 Int      @id @default(autoincrement())
   paymentId          Int
-  payment            Payment  @relation(fields: [paymentId], references: [id])
   bank_id            Int
   cardNumber         String   @db.VarChar
   cardExpirationDate String   @db.VarChar
@@ -131,6 +124,7 @@ model PaymentDetail {
   cardHolderName     String   @db.VarChar
   message            String
   createdAt          DateTime @default(now())
+  payment            Payment  @relation(fields: [paymentId], references: [id])
 }
 
 model ParamsRequest {
@@ -145,4 +139,3 @@ model Transaction {
   id    Int    @id @unique
   state String
 }
-
