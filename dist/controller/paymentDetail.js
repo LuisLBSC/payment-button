@@ -23,7 +23,13 @@ const getAllPaymentDetails = (req, res, paymentId) => __awaiter(void 0, void 0, 
             data: paymentDetails
         });
     }
-    finally {
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'Error getting payment detail',
+            error: error,
+            data: []
+        });
     }
 });
 exports.getAllPaymentDetails = getAllPaymentDetails;

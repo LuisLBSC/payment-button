@@ -14,6 +14,14 @@ export const getAllPaymentDetails = async(req: Request, res: Response, paymentId
             records: paymentDetails.length,
             data: paymentDetails
         }) 
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'Error getting payment detail',
+            error: error,
+            data: []
+
+        });
     }
 }
 

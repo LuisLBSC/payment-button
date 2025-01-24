@@ -10,6 +10,7 @@ const profile_1 = __importDefault(require("../routes/profile"));
 const auth_1 = __importDefault(require("../routes/auth"));
 const param_1 = __importDefault(require("../routes/param"));
 const debt_1 = __importDefault(require("../routes/debt"));
+const paymentButton_1 = __importDefault(require("../routes/paymentButton"));
 const cors_1 = __importDefault(require("cors"));
 class Server {
     constructor() {
@@ -20,6 +21,7 @@ class Server {
             debt: '/api/debt',
             auth: '/api/auth',
             params: '/api/params',
+            paymentButton: '/api/paymentButton'
         };
         this.app = (0, express_1.default)();
         this.port = process.env.PORT || '3000';
@@ -44,6 +46,7 @@ class Server {
         this.app.use(this.apiPaths.auth, auth_1.default);
         this.app.use(this.apiPaths.params, param_1.default);
         this.app.use(this.apiPaths.debt, debt_1.default);
+        this.app.use(this.apiPaths.paymentButton, paymentButton_1.default);
     }
     listen() {
         this.app.listen(this.port, () => {
