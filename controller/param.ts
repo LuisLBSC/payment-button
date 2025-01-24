@@ -20,6 +20,30 @@ export const getAllParams = async(req: Request, res: Response) => {
     }
 }
 
+export const getRequestParams = async(req: Request, res: Response) => {
+    try {
+        const params = await prisma.param.findMany({
+            where: {
+                active : 1,
+                key: {
+                    startsWith: 'request_',
+                }
+            }});
+        res.json({
+            msg: 'ok',
+            error: false,
+            records: params.length,
+            data: params
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'Error getting params',
+            error
+        });
+    }
+}
+
 export const getParamById = async(req: Request, res: Response) => {
     try {
         const {id} = req.params;
@@ -216,6 +240,49 @@ export const deleteParamByKey = async(req: Request, res: Response) => {
         console.log(error);
         res.status(500).json({
             msg: 'Somenthing went wrong',
+            error
+        });
+    }
+}
+
+export const saveOrUpdateParams = async (req: Request, res: Response) => {
+    try {
+        const params = req.body;  
+        if (!Array.isArray(params)) {
+            return res.status(400).json({
+                msg: 'Request body must be an array of parameters',
+                error: true
+            });
+        }
+
+        const updatedParams = await Promise.all(
+            params.map(async (param) => {
+                const { key, value, active } = param;
+                return await prisma.param.upsert({
+                    where: { key },
+                    update: {
+                        value,
+                        active: active ?? 1,
+                    },
+                    create: {
+                        key,
+                        value,
+                        active: active ?? 1, 
+                    },
+                });
+            })
+        );
+
+        res.json({
+            msg: 'Params processed successfully',
+            error: false,
+            records: updatedParams.length,
+            data: updatedParams
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'Something went wrong',
             error
         });
     }

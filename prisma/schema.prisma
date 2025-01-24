@@ -22,7 +22,7 @@ model User {
   lastname      String
   name          String
   address       String?
-  country       String?
+  country       String    @default("EC")
   middlename    String
   phone         String?   @db.VarChar(10)
   postCode      String?

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteParamByKey = exports.deleteParamById = exports.updateParamByKey = exports.updateParamById = exports.saveParam = exports.getParamByKey = exports.getParamById = exports.getAllParams = void 0;
+exports.saveOrUpdateParams = exports.deleteParamByKey = exports.deleteParamById = exports.updateParamByKey = exports.updateParamById = exports.saveParam = exports.getParamByKey = exports.getParamById = exports.getRequestParams = exports.getAllParams = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getAllParams = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -31,6 +31,32 @@ const getAllParams = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.getAllParams = getAllParams;
+const getRequestParams = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const params = yield prisma.param.findMany({
+            where: {
+                active: 1,
+                key: {
+                    startsWith: 'request_',
+                }
+            }
+        });
+        res.json({
+            msg: 'ok',
+            error: false,
+            records: params.length,
+            data: params
+        });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'Error getting params',
+            error
+        });
+    }
+});
+exports.getRequestParams = getRequestParams;
 const getParamById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
@@ -225,4 +251,44 @@ const deleteParamByKey = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.deleteParamByKey = deleteParamByKey;
+const saveOrUpdateParams = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const params = req.body;
+        if (!Array.isArray(params)) {
+            return res.status(400).json({
+                msg: 'Request body must be an array of parameters',
+                error: true
+            });
+        }
+        const updatedParams = yield Promise.all(params.map((param) => __awaiter(void 0, void 0, void 0, function* () {
+            const { key, value, active } = param;
+            return yield prisma.param.upsert({
+                where: { key },
+                update: {
+                    value,
+                    active: active !== null && active !== void 0 ? active : 1,
+                },
+                create: {
+                    key,
+                    value,
+                    active: active !== null && active !== void 0 ? active : 1,
+                },
+            });
+        })));
+        res.json({
+            msg: 'Params processed successfully',
+            error: false,
+            records: updatedParams.length,
+            data: updatedParams
+        });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'Something went wrong',
+            error
+        });
+    }
+});
+exports.saveOrUpdateParams = saveOrUpdateParams;
 //# sourceMappingURL=param.js.map
