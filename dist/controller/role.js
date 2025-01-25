@@ -15,11 +15,18 @@ const prisma = new client_1.PrismaClient();
 const getAllRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const roles = yield prisma.role.findMany({ where: { active: 1 }, include: { roleDetails: true } });
+        const transformedRoles = roles.map((role) => ({
+            id: role.id,
+            name: role.name,
+            description: role.description,
+            active: role.active,
+            entities: role.roleDetails.map((detail) => detail.entity),
+        }));
         res.json({
             msg: 'ok',
             error: false,
-            records: roles.length,
-            data: roles
+            records: transformedRoles.length,
+            data: transformedRoles
         });
     }
     catch (error) {
@@ -40,11 +47,18 @@ const getRoleById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const existingRole = yield prisma.role.findFirst({ where: { id: idNumber }, include: { roleDetails: true } });
         if (!existingRole)
             res.status(404).json({ msg: 'Role not found', error: false, data: [] });
+        const transformedRole = {
+            id: existingRole === null || existingRole === void 0 ? void 0 : existingRole.id,
+            name: existingRole === null || existingRole === void 0 ? void 0 : existingRole.name,
+            description: existingRole === null || existingRole === void 0 ? void 0 : existingRole.description,
+            active: existingRole === null || existingRole === void 0 ? void 0 : existingRole.active,
+            entities: existingRole === null || existingRole === void 0 ? void 0 : existingRole.roleDetails.map((detail) => detail.entity),
+        };
         res.json({
             msg: 'ok',
             error: false,
             records: 1,
-            data: existingRole
+            data: transformedRole
         });
     }
     catch (error) {
