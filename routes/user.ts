@@ -5,7 +5,9 @@ import { check} from "express-validator";
 import { validateFields } from "../middlewares/validate-fields";
 const router = Router();
 
-router.get('/', getAllUsers);
+router.get('/', 
+    validateJWT,
+    getAllUsers);
 router.get('/:id', 
     validateJWT,
     getUserById);

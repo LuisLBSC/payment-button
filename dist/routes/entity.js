@@ -6,7 +6,7 @@ const express_validator_1 = require("express-validator");
 const validate_fields_1 = require("../middlewares/validate-fields");
 const validate_jwt_1 = require("../middlewares/validate-jwt");
 const router = (0, express_1.Router)();
-router.get('/', entity_1.getAllEntities);
+router.get('/', validate_jwt_1.validateJWT, entity_1.getAllEntities);
 router.get('/:id', validate_jwt_1.validateJWT, entity_1.getEntityById);
 router.get('/getByName/:name', validate_jwt_1.validateJWT, entity_1.getEntityByName);
 router.post('/', [

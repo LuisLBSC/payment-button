@@ -6,7 +6,7 @@ const validate_jwt_1 = require("../middlewares/validate-jwt");
 const express_validator_1 = require("express-validator");
 const validate_fields_1 = require("../middlewares/validate-fields");
 const router = (0, express_1.Router)();
-router.get('/', user_1.getAllUsers);
+router.get('/', validate_jwt_1.validateJWT, user_1.getAllUsers);
 router.get('/:id', validate_jwt_1.validateJWT, user_1.getUserById);
 router.post('/', [
     (0, express_validator_1.check)('username', 'Username is required').not().isEmpty(),

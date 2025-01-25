@@ -6,7 +6,7 @@ const express_validator_1 = require("express-validator");
 const validate_fields_1 = require("../middlewares/validate-fields");
 const validate_jwt_1 = require("../middlewares/validate-jwt");
 const router = (0, express_1.Router)();
-router.get('/', param_1.getAllParams);
+router.get('/', validate_jwt_1.validateJWT, param_1.getAllParams);
 router.get('/request', validate_jwt_1.validateJWT, param_1.getRequestParams);
 router.get('/:id', validate_jwt_1.validateJWT, param_1.getParamById);
 router.get('/getByKey/:key', validate_jwt_1.validateJWT, param_1.getParamByKey);

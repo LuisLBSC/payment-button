@@ -15,7 +15,7 @@ const prisma = new client_1.PrismaClient();
 const getAllPaymentsByUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.body;
-        const payments = yield prisma.payment.findMany({ where: { customerId: id } });
+        const payments = yield prisma.payment.findMany({ where: { customerId: id }, include: { PaymentDetail: true } });
         res.json({
             msg: 'ok',
             error: false,
@@ -38,7 +38,7 @@ const getPaymentById = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber))
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        const existingPayment = yield prisma.payment.findFirst({ where: { id: idNumber } });
+        const existingPayment = yield prisma.payment.findFirst({ where: { id: idNumber }, include: { PaymentDetail: true } });
         if (!existingPayment)
             res.status(404).json({ msg: 'Payment not found', error: false, data: [] });
         res.json({

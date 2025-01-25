@@ -6,7 +6,9 @@ import { validateFields } from "../middlewares/validate-fields";
 
 const router = Router();
 
-router.get('/', getAllPaymentsByUser);
+router.get('/', 
+    validateJWT,
+    getAllPaymentsByUser);
 router.get('/:id', 
     validateJWT,
     getPaymentById);

@@ -6,7 +6,9 @@ import { validateFields } from "../middlewares/validate-fields";
 
 const router = Router();
 
-router.get('/', getAllProfiles);
+router.get('/', 
+    validateJWT,
+    getAllProfiles);
 router.get('/:id', 
     validateJWT,
     getProfileById);

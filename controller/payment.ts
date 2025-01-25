@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export const getAllPaymentsByUser = async(req: Request, res: Response) => {
     try {
         const {id} = req.body;
-        const payments = await prisma.payment.findMany({where: {customerId: id}});
+        const payments = await prisma.payment.findMany({where: {customerId: id}, include: { PaymentDetail: true }});
         res.json({
             msg: 'ok',
             error: false,
@@ -29,7 +29,7 @@ export const getPaymentById = async(req: Request, res: Response) => {
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
 
-        const existingPayment = await prisma.payment.findFirst({where: {id: idNumber}});
+        const existingPayment = await prisma.payment.findFirst({where: {id: idNumber}, include: { PaymentDetail: true }});
 
         if(!existingPayment)
             res.status(404).json({msg: 'Payment not found', error: false, data:[]});

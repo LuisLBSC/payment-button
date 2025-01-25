@@ -6,7 +6,9 @@ import { validateFields } from "../middlewares/validate-fields";
 import { validateJWT } from "../middlewares/validate-jwt";
 const router = Router();
 
-router.get('/', getAllParams);
+router.get('/', 
+    validateJWT,
+    getAllParams);
 router.get('/request', 
     validateJWT,
     getRequestParams);
