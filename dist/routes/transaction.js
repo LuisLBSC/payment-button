@@ -5,4 +5,5 @@ const transaction_1 = require("../controller/transaction");
 const validate_jwt_1 = require("../middlewares/validate-jwt");
 const router = (0, express_1.Router)();
 router.get('/', validate_jwt_1.validateJWT, transaction_1.getAllTransactions);
+exports.default = router;
 //# sourceMappingURL=transaction.js.map
