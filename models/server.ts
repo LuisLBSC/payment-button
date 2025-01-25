@@ -6,6 +6,7 @@ import authRoutes from '../routes/auth';
 import paramsRoutes from '../routes/param';
 import debtRoutes from '../routes/debt';
 import paymentRoutes from '../routes/payment';
+import entitiesRoutes from '../routes/payment';
 import paymentButtonRoutes from '../routes/paymentButton';
 import cors from 'cors';
 
@@ -21,6 +22,7 @@ class Server{
     auth: '/api/auth',
     params: '/api/params',
     payment: '/api/payment',
+    entities: '/api/entity',
     paymentButton: '/api/paymentButton'
 }
 
@@ -51,6 +53,7 @@ class Server{
       this.app.use(this.apiPaths.params, paramsRoutes);
       this.app.use(this.apiPaths.debt, debtRoutes);
       this.app.use(this.apiPaths.payment, paymentRoutes);
+      this.app.use(this.apiPaths.entities, entitiesRoutes);
       this.app.use(this.apiPaths.paymentButton, paymentButtonRoutes);
   }
   

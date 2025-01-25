@@ -11,6 +11,7 @@ const auth_1 = __importDefault(require("../routes/auth"));
 const param_1 = __importDefault(require("../routes/param"));
 const debt_1 = __importDefault(require("../routes/debt"));
 const payment_1 = __importDefault(require("../routes/payment"));
+const payment_2 = __importDefault(require("../routes/payment"));
 const paymentButton_1 = __importDefault(require("../routes/paymentButton"));
 const cors_1 = __importDefault(require("cors"));
 class Server {
@@ -23,6 +24,7 @@ class Server {
             auth: '/api/auth',
             params: '/api/params',
             payment: '/api/payment',
+            entities: '/api/entity',
             paymentButton: '/api/paymentButton'
         };
         this.app = (0, express_1.default)();
@@ -49,6 +51,7 @@ class Server {
         this.app.use(this.apiPaths.params, param_1.default);
         this.app.use(this.apiPaths.debt, debt_1.default);
         this.app.use(this.apiPaths.payment, payment_1.default);
+        this.app.use(this.apiPaths.entities, payment_2.default);
         this.app.use(this.apiPaths.paymentButton, paymentButton_1.default);
     }
     listen() {

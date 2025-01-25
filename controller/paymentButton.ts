@@ -224,17 +224,18 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
 
         const params = { entityId };
 
-        const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}/${checkoutId}/payment`;
+        const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}/${checkoutId}/payment?entityId=${entityId}`;
 
         const { data } = await axios.get(url,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
-                params,
+                //params,
                 httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
             }
         );
+        console.log(data);
 
         if (data.card) {
             const { card, result, resultDetails } = data;
