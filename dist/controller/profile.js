@@ -15,11 +15,24 @@ const prisma = new client_1.PrismaClient();
 const getAllProfiles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const profiles = yield prisma.profile.findMany({ where: { active: 1 }, include: { roles: { include: { role: { include: { roleDetails: true } } } } } });
+        const transformedProfiles = profiles.map((profile) => ({
+            id: profile.id,
+            name: profile.name,
+            description: profile.description,
+            active: profile.active,
+            roles: profile.roles.map((roleRelation) => ({
+                id: roleRelation.role.id,
+                name: roleRelation.role.name,
+                description: roleRelation.role.description,
+                active: roleRelation.role.active,
+                entities: roleRelation.role.roleDetails.map((detail) => detail.entity),
+            })),
+        }));
         res.json({
             msg: 'ok',
             error: false,
-            records: profiles.length,
-            data: profiles
+            records: transformedProfiles.length,
+            data: transformedProfiles
         });
     }
     catch (error) {
@@ -40,11 +53,24 @@ const getProfileById = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const existingProfile = yield prisma.profile.findFirst({ where: { id: idNumber }, include: { roles: { include: { role: { include: { roleDetails: true } } } } } });
         if (!existingProfile)
             res.status(404).json({ msg: 'Profile not found', error: false, data: [] });
+        const transformedProfile = {
+            id: existingProfile === null || existingProfile === void 0 ? void 0 : existingProfile.id,
+            name: existingProfile === null || existingProfile === void 0 ? void 0 : existingProfile.name,
+            description: existingProfile === null || existingProfile === void 0 ? void 0 : existingProfile.description,
+            active: existingProfile === null || existingProfile === void 0 ? void 0 : existingProfile.active,
+            roles: existingProfile === null || existingProfile === void 0 ? void 0 : existingProfile.roles.map((roleRelation) => ({
+                id: roleRelation.role.id,
+                name: roleRelation.role.name,
+                description: roleRelation.role.description,
+                active: roleRelation.role.active,
+                entities: roleRelation.role.roleDetails.map((detail) => detail.entity),
+            })),
+        };
         res.json({
             msg: 'ok',
             error: false,
             records: 1,
-            data: existingProfile
+            data: transformedProfile
         });
     }
     catch (error) {

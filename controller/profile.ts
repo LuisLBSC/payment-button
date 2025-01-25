@@ -7,11 +7,25 @@ const prisma = new PrismaClient();
 export const getAllProfiles = async(req: Request, res: Response) => {
     try {
         const profiles = await prisma.profile.findMany({where: {active : 1}, include: { roles: {include: { role: { include: { roleDetails: true } } } } }});
+        
+        const transformedProfiles = profiles.map((profile) => ({
+            id: profile.id,
+            name: profile.name,
+            description: profile.description,
+            active: profile.active,
+            roles: profile.roles.map((roleRelation) => ({
+                id: roleRelation.role.id,
+                name: roleRelation.role.name,
+                description: roleRelation.role.description,
+                active: roleRelation.role.active,
+                entities: roleRelation.role.roleDetails.map((detail) => detail.entity),
+            })),
+        }));
         res.json({
             msg: 'ok',
             error: false,
-            records: profiles.length,
-            data: profiles
+            records: transformedProfiles.length,
+            data: transformedProfiles
         });
     } catch (error) {
         console.log(error);
@@ -33,11 +47,25 @@ export const getProfileById = async(req: Request, res: Response) => {
         if(!existingProfile)
             res.status(404).json({msg: 'Profile not found', error: false, data:[]});
     
+        const transformedProfile = {
+            id: existingProfile?.id,
+            name: existingProfile?.name,
+            description: existingProfile?.description,
+            active: existingProfile?.active,
+            roles: existingProfile?.roles.map((roleRelation) => ({
+                id: roleRelation.role.id,
+                name: roleRelation.role.name,
+                description: roleRelation.role.description,
+                active: roleRelation.role.active,
+                entities: roleRelation.role.roleDetails.map((detail) => detail.entity),
+            })),
+        };
+
         res.json({
             msg: 'ok',
             error: false,
             records: 1,
-            data: existingProfile
+            data: transformedProfile
         });
     } catch (error) {
         console.log(error);
