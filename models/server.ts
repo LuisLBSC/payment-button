@@ -6,7 +6,7 @@ import authRoutes from '../routes/auth';
 import paramsRoutes from '../routes/param';
 import debtRoutes from '../routes/debt';
 import paymentRoutes from '../routes/payment';
-import entitiesRoutes from '../routes/payment';
+import entitiesRoutes from '../routes/entity';
 import transactionsRoutes from '../routes/transaction';
 import paymentButtonRoutes from '../routes/paymentButton';
 import cors from 'cors';

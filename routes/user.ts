@@ -23,14 +23,6 @@ router.post('/',
     validateJWT,
     saveUser);
 router.put('/:id', 
-    [
-        check('username', 'Username is required').not().isEmpty(),
-        check('password', 'Password is required').not().isEmpty(),
-        check('email', 'Email is required').not().isEmpty(),
-        check('email', 'Invalid email').isEmail(),
-        check('profileId', 'Profile id is required').not().isEmpty(),
-        validateFields
-    ],
     validateJWT,
     updateUserById);
 router.delete('/:id', 

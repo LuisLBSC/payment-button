@@ -65,34 +65,34 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             amount: debt?.totalAmount,
             currency,
             paymentType: 'DB',
-            // 'customer.givenName': customer.name,
-            // 'customer.middleName': customer.middlename,
-            // 'customer.surname': customer.lastname,
-            // 'customer.ip': req.ip,
-            // 'customer.merchantCustomerId': customer.id.toString(),
-            // 'merchantTransactionId': transaction,
-            // 'customer.email': customer.email,
-            // 'customer.identificationDocType': 'IDCARD',
-            // 'customer.identificationDocId': customer.username,
-            // 'customer.phone': customer.phone,
-            // 'billing.street1': customer.address,
-            // 'billing.country': customer.country,
-            // 'billing.postcode': customer.postCode,
-            // 'shipping.street1': customer.address,
-            // 'shipping.country': customer.country,
-            // 'risk.parameters[SHOPPER_MID]': mid,
-            // 'customParameters[SHOPPER_TID]': tid,
-            // 'customParameters[SHOPPER_ECI]': '0103910',
-            // 'customParameters[SHOPPER_PSERV]': '17913101',
-            // 'customParameters[SHOPPER_VAL_BASE0]': base0,
-            // 'customParameters[SHOPPER_VAL_BASEIMP]': base15,
-            // 'customParameters[SHOPPER_VAL_IVA]': tax,
-            // 'cart.items[0].name': debt.titleName,
-            // 'cart.items[0].description': `Description: ${debt.titleName}`,
-            // 'cart.items[0].price': debt?.totalAmount,
-            // 'cart.items[0].quantity': 1,
-            // 'customParameters[SHOPPER_VERSIONDF]': '2',
-            // 'testMode': 'EXTERNAL'
+            'customer.givenName': customer.name,
+            'customer.middleName': customer.middlename,
+            'customer.surname': customer.lastname,
+            'customer.ip': req.ip,
+            'customer.merchantCustomerId': customer.id.toString(),
+            'merchantTransactionId': transaction,
+            'customer.email': customer.email,
+            'customer.identificationDocType': 'IDCARD',
+            'customer.identificationDocId': customer.username,
+            'customer.phone': customer.phone,
+            'billing.street1': customer.address,
+            'billing.country': customer.country,
+            'billing.postcode': customer.postCode,
+            'shipping.street1': customer.address,
+            'shipping.country': customer.country,
+            'risk.parameters[SHOPPER_MID]': mid,
+            'customParameters[SHOPPER_TID]': tid,
+            'customParameters[SHOPPER_ECI]': '0103910',
+            'customParameters[SHOPPER_PSERV]': '17913101',
+            'customParameters[SHOPPER_VAL_BASE0]': base0,
+            'customParameters[SHOPPER_VAL_BASEIMP]': base15,
+            'customParameters[SHOPPER_VAL_IVA]': tax,
+            'cart.items[0].name': debt.titleName,
+            'cart.items[0].description': `Description: ${debt.titleName}`,
+            'cart.items[0].price': debt?.totalAmount,
+            'cart.items[0].quantity': 1,
+            'customParameters[SHOPPER_VERSIONDF]': '2',
+            'testMode': 'EXTERNAL'
         });
 
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}?${query}`;
@@ -236,7 +236,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
             }
         );
         console.log(data);
-
+        console.log("Respuesta del servidor:", data);
         if (data.card) {
             const { card, result, resultDetails } = data;
             const newPaymentDetail = await prisma.paymentDetail.create({
@@ -277,10 +277,10 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
         }
 
     } catch (error) {
-        console.error(error);
+        //console.error(error);
         return res.status(500).json({
             msg: 'Something went wrong',
-            error
+            error: error.response?.data || error
         });
     }
 };
