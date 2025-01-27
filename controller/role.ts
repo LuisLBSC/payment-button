@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export const getAllRoles = async (req: Request, res: Response) => {
     try {
-        const roles = await prisma.role.findMany({ where: { active: 1 }, include: { roleDetails: true } });
+        const roles = await prisma.role.findMany({ include: { roleDetails: {where: { active: 1 }} } });
 
         const transformedRoles = roles.map((role) => ({
             id: role.id,
@@ -37,7 +37,7 @@ export const getRoleById = async (req: Request, res: Response) => {
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
 
-        const existingRole = await prisma.role.findFirst({ where: { id: idNumber }, include: { roleDetails: true } });
+        const existingRole = await prisma.role.findFirst({ where: { id: idNumber }, include: { roleDetails: {where: { active: 1 }} } });
 
         if (!existingRole)
             res.status(404).json({ msg: 'Role not found', error: false, data: [] });
@@ -69,7 +69,7 @@ export const getRoleById = async (req: Request, res: Response) => {
 
 export const saveRole = async (req: Request, res: Response) => {
     try {
-        const { name, description, entities } = req.body;
+        const { name, description, active, entities } = req.body;
         if (!Array.isArray(entities)) {
             return res.status(400).json({
                 msg: "roleDetails must be an array of entity names",
@@ -77,8 +77,23 @@ export const saveRole = async (req: Request, res: Response) => {
         }
         const newRole = await prisma.role.upsert({
             create: { name, description },
-            update: { name, description },
+            update: { name, description, active },
             where: { name }
+        });
+        
+        const currentRoleDetails = await prisma.roleDetail.findMany({
+            where: { roleId: newRole.id },
+        });
+        const currentEntities = currentRoleDetails.map((rd) => rd.entity);
+        const entitiesToDeactivate = currentEntities.filter(
+            (entity) => !entities.includes(entity)
+        );
+        await prisma.roleDetail.updateMany({
+            where: {
+                roleId: newRole.id,
+                entity: { in: entitiesToDeactivate },
+            },
+            data: { active: 0 },
         });
 
         for (const entity of entities) {
@@ -116,7 +131,7 @@ export const updateRoleById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const idNumber = parseInt(id, 10);
-        const { name, description, entities } = req.body;
+        const { name, description, active, entities } = req.body;
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const updatingRole = await prisma.role.findFirst({ where: { id: idNumber } });
         if (!updatingRole)
@@ -124,7 +139,7 @@ export const updateRoleById = async (req: Request, res: Response) => {
 
         const updatedRole = await prisma.role.update({
             where: { id: idNumber },
-            data: { name, description },
+            data: { name, description, active },
         });
 
         if (Array.isArray(entities)) {
@@ -133,6 +148,16 @@ export const updateRoleById = async (req: Request, res: Response) => {
             });
 
             const currentEntities = currentRoleDetails.map((rd) => rd.entity);
+            const entitiesToDeactivate = currentEntities.filter(
+                (entity) => !entities.includes(entity)
+            );
+            await prisma.roleDetail.updateMany({
+                where: {
+                    roleId: idNumber,
+                    entity: { in: entitiesToDeactivate },
+                },
+                data: { active: 0 },
+            });
 
             for (const entity of entities) {
                 await prisma.roleDetail.upsert({
@@ -151,18 +176,6 @@ export const updateRoleById = async (req: Request, res: Response) => {
                     },
                 });
             }
-
-            const entitiesToDeactivate = currentEntities.filter(
-                (entity) => !entities.includes(entity)
-            );
-
-            await prisma.roleDetail.updateMany({
-                where: {
-                    roleId: idNumber,
-                    entity: { in: entitiesToDeactivate },
-                },
-                data: { active: 0 },
-            });
         }
 
         res.status(200).json({

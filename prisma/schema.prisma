@@ -140,8 +140,8 @@ model Transaction {
 }
 
 model Entity {
-  id      Int  @id @default(autoincrement())
-  name    String  @unique
+  name        String  @unique
   description String?
-  active  Int?   @default(1)
+  active      Int?    @default(1)
+  id          Int     @id @default(autoincrement())
 }

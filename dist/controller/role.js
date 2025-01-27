@@ -14,7 +14,7 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getAllRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const roles = yield prisma.role.findMany({ where: { active: 1 }, include: { roleDetails: true } });
+        const roles = yield prisma.role.findMany({ include: { roleDetails: { where: { active: 1 } } } });
         const transformedRoles = roles.map((role) => ({
             id: role.id,
             name: role.name,
@@ -44,7 +44,7 @@ const getRoleById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber))
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        const existingRole = yield prisma.role.findFirst({ where: { id: idNumber }, include: { roleDetails: true } });
+        const existingRole = yield prisma.role.findFirst({ where: { id: idNumber }, include: { roleDetails: { where: { active: 1 } } } });
         if (!existingRole)
             res.status(404).json({ msg: 'Role not found', error: false, data: [] });
         const transformedRole = {
@@ -73,7 +73,7 @@ const getRoleById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 exports.getRoleById = getRoleById;
 const saveRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, description, entities } = req.body;
+        const { name, description, active, entities } = req.body;
         if (!Array.isArray(entities)) {
             return res.status(400).json({
                 msg: "roleDetails must be an array of entity names",
@@ -81,8 +81,20 @@ const saveRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         const newRole = yield prisma.role.upsert({
             create: { name, description },
-            update: { name, description },
+            update: { name, description, active },
             where: { name }
+        });
+        const currentRoleDetails = yield prisma.roleDetail.findMany({
+            where: { roleId: newRole.id },
+        });
+        const currentEntities = currentRoleDetails.map((rd) => rd.entity);
+        const entitiesToDeactivate = currentEntities.filter((entity) => !entities.includes(entity));
+        yield prisma.roleDetail.updateMany({
+            where: {
+                roleId: newRole.id,
+                entity: { in: entitiesToDeactivate },
+            },
+            data: { active: 0 },
         });
         for (const entity of entities) {
             yield prisma.roleDetail.upsert({
@@ -119,7 +131,7 @@ const updateRoleById = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const { id } = req.params;
         const idNumber = parseInt(id, 10);
-        const { name, description, entities } = req.body;
+        const { name, description, active, entities } = req.body;
         if (!id || isNaN(idNumber))
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const updatingRole = yield prisma.role.findFirst({ where: { id: idNumber } });
@@ -127,13 +139,21 @@ const updateRoleById = (req, res) => __awaiter(void 0, void 0, void 0, function*
             res.status(404).json({ msg: 'Role not found', error: false, data: [] });
         const updatedRole = yield prisma.role.update({
             where: { id: idNumber },
-            data: { name, description },
+            data: { name, description, active },
         });
         if (Array.isArray(entities)) {
             const currentRoleDetails = yield prisma.roleDetail.findMany({
                 where: { roleId: idNumber },
             });
             const currentEntities = currentRoleDetails.map((rd) => rd.entity);
+            const entitiesToDeactivate = currentEntities.filter((entity) => !entities.includes(entity));
+            yield prisma.roleDetail.updateMany({
+                where: {
+                    roleId: idNumber,
+                    entity: { in: entitiesToDeactivate },
+                },
+                data: { active: 0 },
+            });
             for (const entity of entities) {
                 yield prisma.roleDetail.upsert({
                     where: {
@@ -151,14 +171,6 @@ const updateRoleById = (req, res) => __awaiter(void 0, void 0, void 0, function*
                     },
                 });
             }
-            const entitiesToDeactivate = currentEntities.filter((entity) => !entities.includes(entity));
-            yield prisma.roleDetail.updateMany({
-                where: {
-                    roleId: idNumber,
-                    entity: { in: entitiesToDeactivate },
-                },
-                data: { active: 0 },
-            });
         }
         res.status(200).json({
             msg: `Role ${updatedRole.name} updated`,

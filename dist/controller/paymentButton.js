@@ -224,10 +224,8 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
             headers: {
                 Authorization: `Bearer ${token}`,
             },
-            //params,
             httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
         });
-        console.log("Respuesta del servidor:", data);
         if (data.card) {
             const { card, result, resultDetails } = data;
             const newPaymentDetail = yield prisma.paymentDetail.create({

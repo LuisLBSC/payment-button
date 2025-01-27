@@ -231,11 +231,9 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
-                //params,
                 httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
             }
         );
-        console.log("Respuesta del servidor:", data);
         if (data.card) {
             const { card, result, resultDetails } = data;
             const newPaymentDetail = await prisma.paymentDetail.create({

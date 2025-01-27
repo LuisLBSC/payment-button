@@ -22,16 +22,18 @@ export const login = async(req: Request, res: Response) => {
                 data: [] 
             });
         }
-        
         validPassword = await validatePassword(password, existingUser.password);
         if(!validPassword){
-            const defaultEmails = await prisma.param.findUnique({where: { key: 'DEFAULT_EMAILS' }}) || '';
-            const defaultTextEmail = await prisma.param.findUnique({where: { key: 'DEFAULT_TEXT_EMAIL' }});
+            const defaultEmails = await prisma.param.findUnique({where: { key: 'DEFAULT_EMAILS' }});
+            //const defaultTextEmail = await prisma.param.findUnique({where: { key: 'DEFAULT_TEXT_EMAIL' }});
             const defaultHtmlEmail = await prisma.param.findUnique({where: { key: 'DEFAULT_HTML_EMAIL' }});
-            if(!defaultEmails)
-                sendEmail(process.env.EMAIL || '', defaultEmails?.value, defaultTextEmail.value, defaultHtmlEmail?.value, 'Login Failed!','Info');
+            if(defaultEmails && defaultHtmlEmail)
+                sendEmail(process.env.EMAIL || '', existingUser.email, '', defaultHtmlEmail.value, 'Login Failed!','Info');
+            else{
+                return res.status(404).json({msg: 'Invalid Password and missing required parameters for email configuration', error: false, data:[]});
+            }
             
-            return res.status(404).json({msg: 'Invalid Password', error: false, data:log});
+            return res.status(404).json({msg: 'Invalid Password', error: false, data:[]});
         }
             
         
