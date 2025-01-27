@@ -235,7 +235,6 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                 httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
             }
         );
-        console.log(data);
         console.log("Respuesta del servidor:", data);
         if (data.card) {
             const { card, result, resultDetails } = data;
@@ -245,7 +244,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     bank_id: 1,
                     cardNumber: card.last4Digits,
                     cardExpirationDate: `${card.expiryMonth.slice(-2)}${card.expiryYear.toString().slice(-2)}`,
-                    cardAuthorization: resultDetails.code,
+                    cardAuthorization: result.code,
                     cardVoucherNumber: resultDetails.ConnectorTxID1,
                     cardHolderName: card.holder,
                     message: result.description,
