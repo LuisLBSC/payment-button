@@ -268,7 +268,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
         }
     }
     catch (error) {
-        //console.error(error);
+        console.error(error);
         return res.status(500).json({
             msg: 'Something went wrong',
             error: ((_b = error.response) === null || _b === void 0 ? void 0 : _b.data) || error

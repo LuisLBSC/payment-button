@@ -277,7 +277,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
         }
 
     } catch (error) {
-        //console.error(error);
+        console.error(error);
         return res.status(500).json({
             msg: 'Something went wrong',
             error: error.response?.data || error
