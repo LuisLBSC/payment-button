@@ -141,34 +141,46 @@ const updateUserById = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const { id } = req.params;
         const idNumber = parseInt(id, 10);
         const { username, password, email, name, middlename, lastname, phone, address, country, postCode, profileId } = req.body;
-        const encryptedPassword = yield (0, password_1.encryptPassword)(password);
-        ;
         if (!id || isNaN(idNumber))
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingUser = yield prisma.user.findFirst({ where: { id: idNumber } });
         if (!existingUser)
             res.status(404).json({ msg: 'User not found', error: false, data: [] });
+        const updateData = {};
+        if (username)
+            updateData.username = username;
+        if (password)
+            updateData.password = yield (0, password_1.encryptPassword)(password);
+        if (email)
+            updateData.email = email;
+        if (name)
+            updateData.name = name;
+        if (middlename)
+            updateData.middlename = middlename;
+        if (lastname)
+            updateData.lastname = lastname;
+        if (phone)
+            updateData.phone = phone;
+        if (address)
+            updateData.address = address;
+        if (country)
+            updateData.country = country;
+        if (postCode)
+            updateData.postCode = postCode;
+        if (profileId)
+            updateData.profileId = profileId;
+        if (!password) {
+            delete updateData.password;
+        }
         const updatedUser = yield prisma.user.update({
             where: {
                 id: idNumber
             },
-            data: {
-                username,
-                password: encryptedPassword,
-                email,
-                name,
-                middlename,
-                lastname,
-                phone,
-                address,
-                country,
-                postCode,
-                profileId,
-            }
+            data: updateData
         });
         res.status(200).json({
             updatedUser,
-            msg: `User ${username} updated`,
+            msg: `User ${updatedUser.username} updated`,
             error: false,
             records: 1
         });
