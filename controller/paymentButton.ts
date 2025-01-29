@@ -41,7 +41,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             return acc;
         }, {} as { [key: string]: string | undefined });
 
-        const { entityId, token, mid, tid, currency, mid_risk, base0, base_percent } = paramsMap;
+        const { entityId, token, mid, tid, currency, mid_risk, base0, base_taxable, percent_tax } = paramsMap;
         const missingParams: string[] = [];
         if (!entityId) missingParams.push('entityId');
         if (!token) missingParams.push('token');
@@ -50,7 +50,9 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         if (!currency) missingParams.push('currency');
         if (!mid_risk) missingParams.push('mid_risk');
         if (!base0) missingParams.push('base0');
-        if (!base_percent) missingParams.push('base_percent');
+        if (!base_taxable) missingParams.push('base_taxable');
+        if (!percent_tax) missingParams.push('percent_tax');
+
 
         if (missingParams.length > 0) {
             return res.status(400).json({
@@ -59,9 +61,9 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             });
         }
 
-        const base = typeof base0 === 'string' ? parseFloat(base0) : base0 ?? 0;
-        const base15 = typeof base_percent === 'string' ? parseFloat(base_percent) : base_percent ?? 0;
-        const tax = debt?.totalAmount * (base+base15);
+        const base_0 = typeof base0 === 'string' ? parseFloat(base0) : base0 ?? 0;
+        const percentTax = typeof percent_tax === 'string' ? parseFloat(percent_tax) : percent_tax ?? 0;
+        const tax = debt?.totalAmount * percentTax;
         const transaction = `transaction#${Date.now()}`;
         const query = querystring.stringify({
             entityId,
@@ -88,8 +90,8 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_TID]': tid,
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
-            'customParameters[SHOPPER_VAL_BASE0]': base,
-            'customParameters[SHOPPER_VAL_BASEIMP]': base15,
+            'customParameters[SHOPPER_VAL_BASE0]': base_0,
+            'customParameters[SHOPPER_VAL_BASEIMP]': percentTax,
             'customParameters[SHOPPER_VAL_IVA]': tax,
             'cart.items[0].name': debt.titleName,
             'cart.items[0].description': `Description: ${debt.titleName}`,
@@ -245,7 +247,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     paymentId: transaction?.paymentId ?? 0,
                     bank_id: 1,
                     cardNumber: card.last4Digits,
-                    cardExpirationDate: `${card.expiryMonth.slice(-2)}${card.expiryYear.toString().slice(-2)}`,
+                    cardExpirationDate: `${card.expiryMonth.slice(-2)}/${card.expiryYear.toString().slice(-2)}`,
                     cardAuthorization: result.code,
                     cardVoucherNumber: resultDetails.ConnectorTxID1,
                     cardHolderName: card.holder,
