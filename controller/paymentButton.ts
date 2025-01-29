@@ -228,7 +228,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                 error: true,
             });
         }
-
+        
         const params = { entityId };
 
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}/${checkoutId}/payment?entityId=${entityId}`;
@@ -241,6 +241,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                 httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
             }
         );
+        console.log(data);
         if (data.card) {
             const { card, result, resultDetails } = data;
             const newPaymentDetail = await prisma.paymentDetail.create({
