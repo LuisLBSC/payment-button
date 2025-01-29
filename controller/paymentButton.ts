@@ -65,9 +65,10 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         const percentTax = typeof percent_tax === 'string' ? parseFloat(percent_tax) : percent_tax ?? 0;
         const tax = debt?.totalAmount * percentTax;
         const transaction = `transaction#${Date.now()}`;
+        const totalImp = debt?.totalAmount + tax;
         const query = querystring.stringify({
             entityId,
-            amount: (debt?.totalAmount + tax),
+            amount: debt?.totalAmount,
             currency,
             paymentType: 'DB',
             'customer.givenName': customer.name,

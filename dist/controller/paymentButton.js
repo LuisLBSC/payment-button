@@ -76,9 +76,10 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         const percentTax = typeof percent_tax === 'string' ? parseFloat(percent_tax) : percent_tax !== null && percent_tax !== void 0 ? percent_tax : 0;
         const tax = (debt === null || debt === void 0 ? void 0 : debt.totalAmount) * percentTax;
         const transaction = `transaction#${Date.now()}`;
+        const totalImp = (debt === null || debt === void 0 ? void 0 : debt.totalAmount) + tax;
         const query = querystring_1.default.stringify({
             entityId,
-            amount: ((debt === null || debt === void 0 ? void 0 : debt.totalAmount) + tax),
+            amount: debt === null || debt === void 0 ? void 0 : debt.totalAmount,
             currency,
             paymentType: 'DB',
             'customer.givenName': customer.name,
