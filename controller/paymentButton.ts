@@ -67,7 +67,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         const transaction = `transaction#${Date.now()}`;
         const query = querystring.stringify({
             entityId,
-            amount: debt?.totalAmount,
+            amount: (debt?.totalAmount + tax),
             currency,
             paymentType: 'DB',
             'customer.givenName': customer.name,

@@ -78,7 +78,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         const transaction = `transaction#${Date.now()}`;
         const query = querystring_1.default.stringify({
             entityId,
-            amount: debt === null || debt === void 0 ? void 0 : debt.totalAmount,
+            amount: ((debt === null || debt === void 0 ? void 0 : debt.totalAmount) + tax),
             currency,
             paymentType: 'DB',
             'customer.givenName': customer.name,
