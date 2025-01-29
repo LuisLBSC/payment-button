@@ -41,7 +41,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             return acc;
         }, {} as { [key: string]: string | undefined });
 
-        const { entityId, token, mid, tid, currency, mid_risk } = paramsMap;
+        const { entityId, token, mid, tid, currency, mid_risk, base0, base_percent } = paramsMap;
         const missingParams: string[] = [];
         if (!entityId) missingParams.push('entityId');
         if (!token) missingParams.push('token');
@@ -49,6 +49,8 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         if (!tid) missingParams.push('tid');
         if (!currency) missingParams.push('currency');
         if (!mid_risk) missingParams.push('mid_risk');
+        if (!base0) missingParams.push('base0');
+        if (!base_percent) missingParams.push('base_percent');
 
         if (missingParams.length > 0) {
             return res.status(400).json({
@@ -57,9 +59,9 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             });
         }
 
-        const base0 = 0;
-        const base15 = 0.15;
-        const tax = debt?.totalAmount * base15;
+        const base = typeof base0 === 'string' ? parseFloat(base0) : base0 ?? 0;
+        const base15 = typeof base_percent === 'string' ? parseFloat(base_percent) : base_percent ?? 0;
+        const tax = debt?.totalAmount * (base+base15);
         const transaction = `transaction#${Date.now()}`;
         const query = querystring.stringify({
             entityId,
@@ -86,7 +88,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_TID]': tid,
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
-            'customParameters[SHOPPER_VAL_BASE0]': base0,
+            'customParameters[SHOPPER_VAL_BASE0]': base,
             'customParameters[SHOPPER_VAL_BASEIMP]': base15,
             'customParameters[SHOPPER_VAL_IVA]': tax,
             'cart.items[0].name': debt.titleName,
