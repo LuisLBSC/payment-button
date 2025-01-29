@@ -46,7 +46,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             acc[key] = param.value;
             return acc;
         }, {});
-        const { entityId, token, mid, tid, currency } = paramsMap;
+        const { entityId, token, mid, tid, currency, mid_risk } = paramsMap;
         const missingParams = [];
         if (!entityId)
             missingParams.push('entityId');
@@ -58,6 +58,8 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             missingParams.push('tid');
         if (!currency)
             missingParams.push('currency');
+        if (!mid_risk)
+            missingParams.push('mid_risk');
         if (missingParams.length > 0) {
             return res.status(400).json({
                 msg: `Missing required parameters: ${missingParams.join(', ')}`,
@@ -88,7 +90,8 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             'billing.postcode': customer.postCode,
             'shipping.street1': customer.address,
             'shipping.country': customer.country,
-            'risk.parameters[SHOPPER_MID]': mid,
+            'risk.parameters[SHOPPER_MID]': mid_risk,
+            'customParameters[SHOPPER_MID]': mid,
             'customParameters[SHOPPER_TID]': tid,
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
