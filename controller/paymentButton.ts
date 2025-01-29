@@ -41,13 +41,14 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             return acc;
         }, {} as { [key: string]: string | undefined });
 
-        const { entityId, token, mid, tid, currency } = paramsMap;
+        const { entityId, token, mid, tid, currency, mid_risk } = paramsMap;
         const missingParams: string[] = [];
         if (!entityId) missingParams.push('entityId');
         if (!token) missingParams.push('token');
         if (!mid) missingParams.push('mid');
         if (!tid) missingParams.push('tid');
         if (!currency) missingParams.push('currency');
+        if (!mid_risk) missingParams.push('mid_risk');
 
         if (missingParams.length > 0) {
             return res.status(400).json({
@@ -80,7 +81,8 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'billing.postcode': customer.postCode,
             'shipping.street1': customer.address,
             'shipping.country': customer.country,
-            'risk.parameters[SHOPPER_MID]': mid,
+            'risk.parameters[SHOPPER_MID]': mid_risk,
+            'customParameters[SHOPPER_MID]': mid,
             'customParameters[SHOPPER_TID]': tid,
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
