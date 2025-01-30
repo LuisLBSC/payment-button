@@ -238,7 +238,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
                     totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    jsonResponse: data
+                    jsonResponse: data.toString()
                 },
                 update: {
                     type: data.paymentType,
@@ -253,7 +253,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
                     totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    jsonResponse: data
+                    jsonResponse: data.toString()
                 },
                 where: { trxId: data.id }
             });
