@@ -235,8 +235,8 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     acquirerId: parseInt(customer.merchantCustomerId),
                     authorization: parseInt(resultDetails.AuthCode) || 0,
                     buttonResponse: result.code,
-                    amount: data.amount,
-                    interest: customParameters.SHOPPER_VAL_IVA,
+                    amount: parseFloat(data.amount),
+                    interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
                     totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
                     jsonResponse: data
                 },
@@ -250,8 +250,8 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     acquirerId: parseInt(customer.merchantCustomerId),
                     authorization: parseInt(resultDetails.AuthCode) || 0,
                     buttonResponse: result.code,
-                    amount: data.amount,
-                    interest: customParameters.SHOPPER_VAL_IVA,
+                    amount: parseFloat(data.amount),
+                    interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
                     totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
                     jsonResponse: data
                 },
@@ -273,7 +273,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                         cardAuthorization: resultDetails.AuthCode,
                         cardVoucherNumber: resultDetails.ReferenceNo,
                         transactionId: newTransaction.id,
-                        amount: item.price,
+                        amount: parseFloat(item.price),
                         createdAt: new Date(),
                     },
                 });

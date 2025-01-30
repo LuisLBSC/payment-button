@@ -239,8 +239,8 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     acquirerId: parseInt(customer.merchantCustomerId),
                     authorization: parseInt(resultDetails.AuthCode) || 0,
                     buttonResponse: result.code,
-                    amount: data.amount,
-                    interest: customParameters.SHOPPER_VAL_IVA,
+                    amount: parseFloat(data.amount),
+                    interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
                     totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
                     jsonResponse: data
                 },
@@ -254,8 +254,8 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     acquirerId: parseInt(customer.merchantCustomerId),
                     authorization: parseInt(resultDetails.AuthCode) || 0,
                     buttonResponse: result.code,
-                    amount: data.amount,
-                    interest: customParameters.SHOPPER_VAL_IVA,
+                    amount: parseFloat(data.amount),
+                    interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
                     totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
                     jsonResponse: data
                 },
@@ -278,7 +278,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                         cardAuthorization: resultDetails.AuthCode,
                         cardVoucherNumber: resultDetails.ReferenceNo,
                         transactionId: newTransaction.id,
-                        amount: item.price,
+                        amount: parseFloat(item.price),
                         createdAt: new Date(),
                     },
                 });
