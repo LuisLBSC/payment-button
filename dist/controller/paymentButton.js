@@ -77,7 +77,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         const total = (debt === null || debt === void 0 ? void 0 : debt.totalAmount) + parseFloat(tax.toFixed(2)) + base_0;
         const query = querystring_1.default.stringify({
             entityId,
-            amount: (debt === null || debt === void 0 ? void 0 : debt.totalAmount) + parseFloat(total.toFixed(2)),
+            amount: debt === null || debt === void 0 ? void 0 : debt.totalAmount,
             currency,
             paymentType: 'DB',
             'customer.givenName': customer.name,
@@ -102,7 +102,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             'customParameters[SHOPPER_PSERV]': '17913101',
             'customParameters[SHOPPER_VAL_BASE0]': base_0,
             'customParameters[SHOPPER_VAL_BASEIMP]': debt === null || debt === void 0 ? void 0 : debt.totalAmount,
-            'customParameters[SHOPPER_VAL_IVA]': tax,
+            'customParameters[SHOPPER_VAL_IVA]': parseFloat(tax.toFixed(2)),
             'cart.items[0].name': debt.titleName,
             'cart.items[0].description': `Description: ${debt.titleName}`,
             'cart.items[0].price': debt === null || debt === void 0 ? void 0 : debt.totalAmount,

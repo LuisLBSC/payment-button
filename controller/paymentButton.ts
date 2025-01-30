@@ -66,7 +66,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         const total = debt?.totalAmount +  parseFloat(tax.toFixed(2)) + base_0;
         const query = querystring.stringify({
             entityId,
-            amount: debt?.totalAmount +  parseFloat(total.toFixed(2)),
+            amount: debt?.totalAmount,
             currency,
             paymentType: 'DB',
             'customer.givenName': customer.name,
@@ -91,7 +91,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_PSERV]': '17913101',
             'customParameters[SHOPPER_VAL_BASE0]': base_0,
             'customParameters[SHOPPER_VAL_BASEIMP]': debt?.totalAmount,
-            'customParameters[SHOPPER_VAL_IVA]': tax,
+            'customParameters[SHOPPER_VAL_IVA]': parseFloat(tax.toFixed(2)),
             'cart.items[0].name': debt.titleName,
             'cart.items[0].description': `Description: ${debt.titleName}`,
             'cart.items[0].price': debt?.totalAmount,
