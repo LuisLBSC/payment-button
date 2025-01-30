@@ -252,7 +252,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     responseText: resultDetails.ExtendedDescription,
                     reference: resultDetails.ReferenceNo,
                     acquirerId: parseInt(customer.merchantCustomerId),
-                    authorization: resultDetails.AuthCode || '',
+                    authorization: parseInt(resultDetails.AuthCode) || 0,
                     buttonResponse: result.code,
                     amount: data.amount,
                     interest: customParameters.SHOPPER_VAL_IVA,

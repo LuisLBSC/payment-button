@@ -248,7 +248,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     responseText: resultDetails.ExtendedDescription,
                     reference: resultDetails.ReferenceNo,
                     acquirerId: parseInt(customer.merchantCustomerId),
-                    authorization: resultDetails.AuthCode || '',
+                    authorization: parseInt(resultDetails.AuthCode) || 0,
                     buttonResponse: result.code,
                     amount: data.amount,
                     interest: customParameters.SHOPPER_VAL_IVA,
