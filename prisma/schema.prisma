@@ -9,25 +9,26 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  username      String    @unique
+  id            Int           @id @default(autoincrement())
+  username      String        @unique
   password      String
-  email         String    @unique
-  active        Int?      @default(1)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  email         String        @unique
+  active        Int?          @default(1)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   profileId     Int
-  verified      Int?      @default(0)
+  verified      Int?          @default(0)
   verifiedToken String?
   lastname      String
   name          String
   address       String?
-  country       String    @default("EC")
+  country       String        @default("EC")
   middlename    String
-  phone         String?   @db.VarChar(10)
+  phone         String?       @db.VarChar(10)
   postCode      String?
   Payment       Payment[]
-  profile       Profile   @relation(fields: [profileId], references: [id])
+  profile       Profile       @relation(fields: [profileId], references: [id])
+  Transaction   Transaction[]
 }
 
 model Profile {
@@ -75,7 +76,7 @@ model Param {
 }
 
 model Debt {
-  id                    Int           @id @default(autoincrement())
+  id                    Int       @id @default(autoincrement())
   titleName             String?
   liquidationCode       String
   debtDate              DateTime
@@ -87,56 +88,60 @@ model Debt {
   actionLiquidationType Int
   liquidationState      Int
   year                  Int
-  surcharge             Float?        @default(0)
-  discount              Float?        @default(0)
-  interest              Float?        @default(0)
-  coercive              Float?        @default(0)
+  surcharge             Float?    @default(0)
+  discount              Float?    @default(0)
+  interest              Float?    @default(0)
+  coercive              Float?    @default(0)
   totalAmount           Float
-  createdAt             DateTime      @default(now())
+  createdAt             DateTime  @default(now())
   liquidationId         Int
   Payment               Payment[]
-  Transaction           Transaction[]
 }
 
 model Payment {
-  id             Int             @id @default(autoincrement())
-  customerId     Int
-  cashier        Int             @default(30)
-  createdAt      DateTime        @default(now())
-  debtId         Int
-  ipSession      String?
-  macAddressUser String?
-  observation    String?
-  paymentDate    DateTime        @default(now())
-  receiptNumber  String          @unique
-  customer       User            @relation(fields: [customerId], references: [id])
-  debt           Debt            @relation(fields: [debtId], references: [id])
-  PaymentDetail  PaymentDetail[]
-  Transaction    Transaction[]
-}
-
-model PaymentDetail {
-  id                 Int      @id @default(autoincrement())
-  paymentId          Int
+  id                 Int          @id @default(autoincrement())
+  customerId         Int
+  customer           User         @relation(fields: [customerId], references: [id])
+  cashier            Int          @default(30)
+  debtId             Int
+  debt               Debt         @relation(fields: [debtId], references: [id])
+  ipSession          String?
+  macAddressUser     String?
+  observation        String?
+  receiptNumber      String       @unique
   bank_id            Int
-  cardNumber         String   @db.VarChar
-  cardExpirationDate String   @db.VarChar
-  cardAuthorization  String   @db.VarChar
-  cardVoucherNumber  String   @db.VarChar
-  cardHolderName     String   @db.VarChar
+  cardNumber         String       @db.VarChar
+  cardExpirationDate String       @db.VarChar
+  cardAuthorization  String       @db.VarChar
+  cardVoucherNumber  String       @db.VarChar
+  cardHolderName     String       @db.VarChar
+  amount             Float
   message            String
-  createdAt          DateTime @default(now())
-  payment            Payment  @relation(fields: [paymentId], references: [id])
+  createdAt          DateTime     @default(now())
+  transactionId      Int
+  Transaction        Transaction? @relation(fields: [transactionId], references: [id])
 }
 
 model Transaction {
-  id         String  @id @unique
-  state      String
-  checkoutId String?
-  debtId     Int
-  paymentId  Int
-  debt       Debt    @relation(fields: [debtId], references: [id])
-  payment    Payment @relation(fields: [paymentId], references: [id])
+  id             Int       @id @default(autoincrement())
+  type           String?
+  state          String
+  order          Int       @default(autoincrement())
+  executionDate  DateTime  @default(now())
+  trxId          String    @unique
+  bankResponse   String?
+  responseText   String?
+  lot            String?
+  reference      String?
+  acquirerId     Int
+  acquirer       User      @relation(fields: [acquirerId], references: [id])
+  authorization  Int
+  buttonResponse String
+  amount         Float
+  interest       Float?    @default(0)
+  totalAmount    Float
+  jsonResponse   String
+  Payment        Payment[]
 }
 
 model Entity {

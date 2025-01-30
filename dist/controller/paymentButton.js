@@ -75,9 +75,44 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         const tax = (debt === null || debt === void 0 ? void 0 : debt.totalAmount) * percentTax;
         const transaction = `transaction#${Date.now()}`;
         const total = (debt === null || debt === void 0 ? void 0 : debt.totalAmount) + parseFloat(tax.toFixed(2)) + base_0;
+        // const query = querystring.stringify({
+        //     entityId,
+        //     amount: debt?.totalAmount,
+        //     currency,
+        //     paymentType: 'DB',
+        //     'customer.givenName': customer.name,
+        //     'customer.middleName': customer.middlename,
+        //     'customer.surname': customer.lastname,
+        //     'customer.ip': req.ip,
+        //     'customer.merchantCustomerId': customer.id.toString(),
+        //     'merchantTransactionId': transaction,
+        //     'customer.email': customer.email,
+        //     'customer.identificationDocType': 'IDCARD',
+        //     'customer.identificationDocId': customer.username,
+        //     'customer.phone': customer.phone,
+        //     'billing.street1': customer.address,
+        //     'billing.country': customer.country,
+        //     'billing.postcode': customer.postCode,
+        //     'shipping.street1': customer.address,
+        //     'shipping.country': customer.country,
+        //     'risk.parameters[SHOPPER_MID]': mid_risk,
+        //     'customParameters[SHOPPER_MID]': mid,
+        //     'customParameters[SHOPPER_TID]': tid,
+        //     'customParameters[SHOPPER_ECI]': '0103910',
+        //     'customParameters[SHOPPER_PSERV]': '17913101',
+        //     'customParameters[SHOPPER_VAL_BASE0]': base_0,
+        //     'customParameters[SHOPPER_VAL_BASEIMP]': debt?.totalAmount,
+        //     'customParameters[SHOPPER_VAL_IVA]': parseFloat(tax.toFixed(2)),
+        //     'cart.items[0].name': debt.titleName,
+        //     'cart.items[0].description': `Description: ${debt.titleName}`,
+        //     'cart.items[0].price': debt?.totalAmount,
+        //     'cart.items[0].quantity': 1,
+        //     'customParameters[SHOPPER_VERSIONDF]': '2',
+        //     'testMode': 'EXTERNAL'
+        // });
         const query = querystring_1.default.stringify({
             entityId,
-            amount: debt === null || debt === void 0 ? void 0 : debt.totalAmount,
+            amount: "3.15",
             currency,
             paymentType: 'DB',
             'customer.givenName': customer.name,
@@ -100,12 +135,12 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             'customParameters[SHOPPER_TID]': tid,
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
-            'customParameters[SHOPPER_VAL_BASE0]': base_0,
-            'customParameters[SHOPPER_VAL_BASEIMP]': debt === null || debt === void 0 ? void 0 : debt.totalAmount,
-            'customParameters[SHOPPER_VAL_IVA]': parseFloat(tax.toFixed(2)),
+            'customParameters[SHOPPER_VAL_BASE0]': "2.00",
+            'customParameters[SHOPPER_VAL_BASEIMP]': "1.00",
+            'customParameters[SHOPPER_VAL_IVA]': "0.15",
             'cart.items[0].name': debt.titleName,
             'cart.items[0].description': `Description: ${debt.titleName}`,
-            'cart.items[0].price': debt === null || debt === void 0 ? void 0 : debt.totalAmount,
+            'cart.items[0].price': 1,
             'cart.items[0].quantity': 1,
             'customParameters[SHOPPER_VERSIONDF]': '2',
             'testMode': 'EXTERNAL'
@@ -118,54 +153,6 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
         });
         if (data.id) {
-            const existingPayment = yield prisma.payment.findFirst({
-                where: {
-                    debtId: debt.id,
-                    receiptNumber: data.id,
-                }
-            });
-            if (existingPayment) {
-                const updatedPayment = yield prisma.payment.update({
-                    where: { id: existingPayment.id },
-                    data: {
-                        customerId,
-                        observation: '',
-                        macAddressUser: '',
-                        ipSession: req.ip,
-                    }
-                });
-                const newTransaction = yield prisma.transaction.create({
-                    data: {
-                        id: transaction,
-                        state: 'P',
-                        checkoutId: data.id,
-                        debtId: debt.id,
-                        paymentId: updatedPayment.id,
-                    }
-                });
-            }
-            else {
-                const newPayment = yield prisma.payment.create({
-                    data: {
-                        customerId,
-                        debtId,
-                        cashier: 30,
-                        observation: '',
-                        macAddressUser: '',
-                        ipSession: req.ip,
-                        receiptNumber: data.id
-                    }
-                });
-                const newTransaction = yield prisma.transaction.create({
-                    data: {
-                        id: transaction,
-                        state: 'P',
-                        checkoutId: data.id,
-                        debtId: debt.id,
-                        paymentId: newPayment.id
-                    }
-                });
-            }
             return res.status(200).json({
                 msg: 'ok',
                 error: false,
@@ -192,7 +179,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
 });
 exports.requestCheckout = requestCheckout;
 const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a;
     try {
         const { checkoutId } = req.body;
         if (!checkoutId) {
@@ -201,7 +188,6 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                 error: true,
             });
         }
-        const transaction = yield prisma.transaction.findFirst({ where: { checkoutId }, });
         const requestParams = yield prisma.param.findMany({
             where: {
                 key: {
@@ -236,27 +222,64 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
         });
         console.log(data);
         if (data.card) {
-            const { card, result, resultDetails } = data;
-            const newPaymentDetail = yield prisma.paymentDetail.create({
-                data: {
-                    paymentId: (_a = transaction === null || transaction === void 0 ? void 0 : transaction.paymentId) !== null && _a !== void 0 ? _a : 0,
-                    bank_id: 1,
-                    cardNumber: card.last4Digits,
-                    cardExpirationDate: `${card.expiryMonth.slice(-2)}/${card.expiryYear.toString().slice(-2)}`,
-                    cardAuthorization: result.code,
-                    cardVoucherNumber: resultDetails.ConnectorTxID1,
-                    cardHolderName: card.holder,
-                    message: result.description,
+            const { card, result, resultDetails, cart, customer, customParameters } = data;
+            const transactionState = !cart.items || cart.items.length === 0 ? 'PROCESADO' : 'RECHADAZO';
+            const newTransaction = yield prisma.transaction.upsert({
+                create: {
+                    type: data.paymentType,
+                    state: transactionState,
+                    trxId: data.id,
+                    bankResponse: resultDetails.Response || '',
+                    responseText: resultDetails.ExtendedDescription,
+                    reference: resultDetails.ReferenceNo,
+                    acquirerId: parseInt(customer.merchantCustomerId),
+                    authorization: resultDetails.AuthCode || '',
+                    buttonResponse: result.code,
+                    amount: data.amount,
+                    interest: customParameters.SHOPPER_VAL_IVA,
+                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    jsonResponse: data
                 },
-            });
-            yield prisma.transaction.update({
-                where: {
-                    id: transaction === null || transaction === void 0 ? void 0 : transaction.id,
+                update: {
+                    type: data.paymentType,
+                    state: transactionState,
+                    trxId: data.id,
+                    bankResponse: resultDetails.Response || '',
+                    responseText: resultDetails.ExtendedDescription,
+                    reference: resultDetails.ReferenceNo,
+                    acquirerId: parseInt(customer.merchantCustomerId),
+                    authorization: resultDetails.AuthCode || '',
+                    buttonResponse: result.code,
+                    amount: data.amount,
+                    interest: customParameters.SHOPPER_VAL_IVA,
+                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    jsonResponse: data
                 },
-                data: {
-                    state: 'S'
-                }
+                where: { trxId: data.id }
             });
+            const paymentPromises = cart.items.map((item) => __awaiter(void 0, void 0, void 0, function* () {
+                const payment = yield prisma.payment.create({
+                    data: {
+                        customerId: parseInt(customer.merchantCustomerId),
+                        cashier: 30,
+                        debtId: 3,
+                        ipSession: customer.ip,
+                        cardNumber: `${card.bin}XXXXXX${card.last4Digits}`,
+                        cardExpirationDate: `${card.expiryMonth}/${card.expiryYear}`,
+                        cardHolderName: card.holder,
+                        message: resultDetails.ExtendedDescription,
+                        receiptNumber: resultDetails.ReferenceNbr,
+                        bank_id: 1,
+                        cardAuthorization: resultDetails.AuthCode,
+                        cardVoucherNumber: resultDetails.ReferenceNo,
+                        transactionId: newTransaction.id,
+                        amount: item.price,
+                        createdAt: new Date(),
+                    },
+                });
+                return payment;
+            }));
+            const payments = yield Promise.all(paymentPromises);
             return res.status(200).json({
                 msg: 'ok',
                 error: false,
@@ -277,7 +300,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
         console.error(error);
         return res.status(500).json({
             msg: 'Something went wrong',
-            error: ((_b = error.response) === null || _b === void 0 ? void 0 : _b.data) || error
+            error: ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error
         });
     }
 });
