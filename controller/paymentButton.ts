@@ -41,7 +41,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             return acc;
         }, {} as { [key: string]: string | undefined });
 
-        const { entityId, token, mid, tid, currency, mid_risk, percent_tax /*base0, base_taxable,*/  } = paramsMap;
+        const { entityId, token, mid, tid, currency, mid_risk, percent_tax, base0  } = paramsMap;
         const missingParams: string[] = [];
         if (!entityId) missingParams.push('entityId');
         if (!token) missingParams.push('token');
@@ -50,10 +50,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         if (!currency) missingParams.push('currency');
         if (!mid_risk) missingParams.push('mid_risk');
         if (!percent_tax) missingParams.push('percent_tax');
-        // if (!base0) missingParams.push('base0');
-        // if (!base_taxable) missingParams.push('base_taxable');
-        
-
+        if (!base0) missingParams.push('base0');
 
         if (missingParams.length > 0) {
             return res.status(400).json({
@@ -63,13 +60,13 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         }
 
         const percentTax = typeof percent_tax === 'string' ? parseFloat(percent_tax) : percent_tax ?? 0;
-        const base_0 = 0;//typeof base0 === 'string' ? parseFloat(base0) : base0 ?? 0;
+        const base_0 = typeof base0 === 'string' ? parseFloat(base0) : base0 ?? 0;
         const tax = debt?.totalAmount * percentTax;
         const transaction = `transaction#${Date.now()}`;
-        const totalImp = debt?.totalAmount + tax;
+        const total = debt?.totalAmount +  parseFloat(tax.toFixed(2)) + base_0;
         const query = querystring.stringify({
             entityId,
-            amount: totalImp,
+            amount: debt?.totalAmount +  parseFloat(total.toFixed(2)),
             currency,
             paymentType: 'DB',
             'customer.givenName': customer.name,
@@ -94,10 +91,10 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_PSERV]': '17913101',
             'customParameters[SHOPPER_VAL_BASE0]': base_0,
             'customParameters[SHOPPER_VAL_BASEIMP]': debt?.totalAmount,
-            'customParameters[SHOPPER_VAL_IVA]': percentTax,
+            'customParameters[SHOPPER_VAL_IVA]': tax,
             'cart.items[0].name': debt.titleName,
             'cart.items[0].description': `Description: ${debt.titleName}`,
-            'cart.items[0].price': totalImp.toString(),
+            'cart.items[0].price': debt?.totalAmount,
             'cart.items[0].quantity': 1,
             'customParameters[SHOPPER_VERSIONDF]': '2',
             'testMode': 'EXTERNAL'
