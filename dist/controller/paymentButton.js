@@ -46,7 +46,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             acc[key] = param.value;
             return acc;
         }, {});
-        const { entityId, token, mid, tid, currency, mid_risk, base0, base_taxable, percent_tax } = paramsMap;
+        const { entityId, token, mid, tid, currency, mid_risk, percent_tax /*base0, base_taxable,*/ } = paramsMap;
         const missingParams = [];
         if (!entityId)
             missingParams.push('entityId');
@@ -60,26 +60,24 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             missingParams.push('currency');
         if (!mid_risk)
             missingParams.push('mid_risk');
-        if (!base0)
-            missingParams.push('base0');
-        if (!base_taxable)
-            missingParams.push('base_taxable');
         if (!percent_tax)
             missingParams.push('percent_tax');
+        // if (!base0) missingParams.push('base0');
+        // if (!base_taxable) missingParams.push('base_taxable');
         if (missingParams.length > 0) {
             return res.status(400).json({
                 msg: `Missing required parameters: ${missingParams.join(', ')}`,
                 error: true,
             });
         }
-        const base_0 = typeof base0 === 'string' ? parseFloat(base0) : base0 !== null && base0 !== void 0 ? base0 : 0;
         const percentTax = typeof percent_tax === 'string' ? parseFloat(percent_tax) : percent_tax !== null && percent_tax !== void 0 ? percent_tax : 0;
+        const base_0 = 0; //typeof base0 === 'string' ? parseFloat(base0) : base0 ?? 0;
         const tax = (debt === null || debt === void 0 ? void 0 : debt.totalAmount) * percentTax;
         const transaction = `transaction#${Date.now()}`;
         const totalImp = (debt === null || debt === void 0 ? void 0 : debt.totalAmount) + tax;
         const query = querystring_1.default.stringify({
             entityId,
-            amount: debt === null || debt === void 0 ? void 0 : debt.totalAmount,
+            amount: totalImp,
             currency,
             paymentType: 'DB',
             'customer.givenName': customer.name,
@@ -103,11 +101,11 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
             'customParameters[SHOPPER_VAL_BASE0]': base_0,
-            'customParameters[SHOPPER_VAL_BASEIMP]': percentTax,
-            'customParameters[SHOPPER_VAL_IVA]': tax,
+            'customParameters[SHOPPER_VAL_BASEIMP]': debt === null || debt === void 0 ? void 0 : debt.totalAmount,
+            'customParameters[SHOPPER_VAL_IVA]': percentTax,
             'cart.items[0].name': debt.titleName,
             'cart.items[0].description': `Description: ${debt.titleName}`,
-            'cart.items[0].price': debt === null || debt === void 0 ? void 0 : debt.totalAmount,
+            'cart.items[0].price': totalImp.toString(),
             'cart.items[0].quantity': 1,
             'customParameters[SHOPPER_VERSIONDF]': '2',
             'testMode': 'EXTERNAL'
