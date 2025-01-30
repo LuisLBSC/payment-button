@@ -14,7 +14,7 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getAllTransactions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const params = yield prisma.transaction.findMany({ include: { debt: true, payment: { include: { PaymentDetail: true } } } });
+        const params = yield prisma.transaction.findMany({ include: { acquirer: true } });
         res.json({
             msg: 'ok',
             error: false,
@@ -25,7 +25,7 @@ const getAllTransactions = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting params',
+            msg: 'Error getting transactions',
             error
         });
     }

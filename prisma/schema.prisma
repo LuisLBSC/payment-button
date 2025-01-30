@@ -26,9 +26,9 @@ model User {
   middlename    String
   phone         String?       @db.VarChar(10)
   postCode      String?
-  Payment       Payment[]
+  payment       Payment[]
   profile       Profile       @relation(fields: [profileId], references: [id])
-  Transaction   Transaction[]
+  transaction   Transaction[]
 }
 
 model Profile {
@@ -95,7 +95,7 @@ model Debt {
   totalAmount           Float
   createdAt             DateTime  @default(now())
   liquidationId         Int
-  Payment               Payment[]
+  payment               Payment[]
 }
 
 model Payment {
@@ -119,7 +119,7 @@ model Payment {
   message            String
   createdAt          DateTime     @default(now())
   transactionId      Int
-  Transaction        Transaction? @relation(fields: [transactionId], references: [id])
+  transaction        Transaction? @relation(fields: [transactionId], references: [id])
 }
 
 model Transaction {
@@ -141,7 +141,7 @@ model Transaction {
   interest       Float?    @default(0)
   totalAmount    Float
   jsonResponse   String
-  Payment        Payment[]
+  payment        Payment[]
 }
 
 model Entity {
