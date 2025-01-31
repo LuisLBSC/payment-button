@@ -242,7 +242,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
                     totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    jsonResponse: data.toString()
+                    jsonResponse: JSON.stringify(data)
                 },
                 update: {
                     type: data.paymentType,
@@ -257,7 +257,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
                     totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    jsonResponse: data.toString()
+                    jsonResponse: JSON.stringify(data)
                 },
                 where: {trxId: data.id}
             });
