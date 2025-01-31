@@ -9,9 +9,9 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
     try {
         const {
             customerId,
-            debtId,
+            //debtIds,
         } = req.body;
-
+        const debtIds = [6, 8];
         const customer = await prisma.user.findFirst({ where: { id: customerId, active: 1 } });
         if (!customer) {
             return res.status(404).json({
@@ -19,10 +19,32 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
                 error: true,
             });
         }
-        const debt = await prisma.debt.findFirst({ where: { id: debtId } });
-        if (!debt) {
+        const debts = await prisma.debt.findMany({
+            where: { id: { in: debtIds } }
+        }) as Array<{
+            id: number;
+            titleName: string | null;
+            liquidationCode: string;
+            debtDate: Date;
+            shopperName: string;
+            identification: number | null;
+            courtCosts: number | null;
+            localCode: string;
+            plotId: number;
+            actionLiquidationType: number;
+            liquidationState: number;
+            year: number;
+            surcharge: number | null;
+            discount: number | null;
+            interest: number | null;
+            coercive: number | null;
+            totalAmount: number;
+            createdAt: Date;
+            liquidationId: number;
+        }>;
+        if (!debts || debts.length === 0) {
             return res.status(404).json({
-                msg: 'Debt not found',
+                msg: 'Debts not found',
                 error: true,
             });
         }
@@ -61,12 +83,28 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
 
         const percentTax = typeof percent_tax === 'string' ? parseFloat(percent_tax) : percent_tax ?? 0;
         const base_0 = typeof base0 === 'string' ? parseFloat(base0) : base0 ?? 0;
-        const tax = debt?.totalAmount * percentTax;
         const transaction = `transaction#${Date.now()}`;
-        const total = debt?.totalAmount +  parseFloat(tax.toFixed(2)) + base_0;
+        
+        let total = 0;
+        let totalTax = 0;
+        let cartItems: { [key: string]: string } = {};
+        let itemIndex = 0; 
+        debts.forEach(debt => {
+            const tax = debt.totalAmount * percentTax;
+            const itemTotal = debt.totalAmount + tax;
+            totalTax += tax;
+            total += itemTotal;
+            cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title';  // Si el título es null o undefined
+            cartItems[`cart.items[${itemIndex}].description`] = `Description: ${debt.titleName || 'No description'}`;  // Si no hay descripción
+            cartItems[`cart.items[${itemIndex}].price`] =itemIndex == 0 ? debt.totalAmount.toString() : '0' ;
+            cartItems[`cart.items[${itemIndex}].quantity`] = '1';
+            itemIndex += 1;
+        });
+        total += base_0;
+
         // const query = querystring.stringify({
         //     entityId,
-        //     amount: debt?.totalAmount,
+        //     amount: total.toFixed(2),
         //     currency,
         //     paymentType: 'DB',
         //     'customer.givenName': customer.name,
@@ -90,12 +128,9 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         //     'customParameters[SHOPPER_ECI]': '0103910',
         //     'customParameters[SHOPPER_PSERV]': '17913101',
         //     'customParameters[SHOPPER_VAL_BASE0]': base_0,
-        //     'customParameters[SHOPPER_VAL_BASEIMP]': debt?.totalAmount,
-        //     'customParameters[SHOPPER_VAL_IVA]': parseFloat(tax.toFixed(2)),
-        //     'cart.items[0].name': debt.titleName,
-        //     'cart.items[0].description': `Description: ${debt.titleName}`,
-        //     'cart.items[0].price': debt?.totalAmount,
-        //     'cart.items[0].quantity': 1,
+        //     'customParameters[SHOPPER_VAL_BASEIMP]': total.toFixed(2),
+        //     'customParameters[SHOPPER_VAL_IVA]': parseFloat(totalTax.toFixed(2)),
+        //     'cart.items': JSON.stringify(cartItems),
         //     'customParameters[SHOPPER_VERSIONDF]': '2',
         //     'testMode': 'EXTERNAL'
         // });
@@ -128,12 +163,9 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_VAL_BASE0]': "2.00",
             'customParameters[SHOPPER_VAL_BASEIMP]': "1.00",
             'customParameters[SHOPPER_VAL_IVA]': "0.15",
-            'cart.items[0].name': debt.titleName,
-            'cart.items[0].description': `Description: ${debt.titleName}`,
-            'cart.items[0].price': 1,
-            'cart.items[0].quantity': 1,
             'customParameters[SHOPPER_VERSIONDF]': '2',
-            'testMode': 'EXTERNAL'
+            'testMode': 'EXTERNAL',
+            ...cartItems
         });
 
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}?${query}`;

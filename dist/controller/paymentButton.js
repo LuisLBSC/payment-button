@@ -19,7 +19,10 @@ const querystring_1 = __importDefault(require("querystring"));
 const prisma = new client_1.PrismaClient();
 const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { customerId, debtId, } = req.body;
+        const { customerId,
+        //debtIds,
+         } = req.body;
+        const debtIds = [6, 8];
         const customer = yield prisma.user.findFirst({ where: { id: customerId, active: 1 } });
         if (!customer) {
             return res.status(404).json({
@@ -27,10 +30,12 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
                 error: true,
             });
         }
-        const debt = yield prisma.debt.findFirst({ where: { id: debtId } });
-        if (!debt) {
+        const debts = yield prisma.debt.findMany({
+            where: { id: { in: debtIds } }
+        });
+        if (!debts || debts.length === 0) {
             return res.status(404).json({
-                msg: 'Debt not found',
+                msg: 'Debts not found',
                 error: true,
             });
         }
@@ -72,12 +77,26 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         }
         const percentTax = typeof percent_tax === 'string' ? parseFloat(percent_tax) : percent_tax !== null && percent_tax !== void 0 ? percent_tax : 0;
         const base_0 = typeof base0 === 'string' ? parseFloat(base0) : base0 !== null && base0 !== void 0 ? base0 : 0;
-        const tax = (debt === null || debt === void 0 ? void 0 : debt.totalAmount) * percentTax;
         const transaction = `transaction#${Date.now()}`;
-        const total = (debt === null || debt === void 0 ? void 0 : debt.totalAmount) + parseFloat(tax.toFixed(2)) + base_0;
+        let total = 0;
+        let totalTax = 0;
+        let cartItems = {};
+        let itemIndex = 0;
+        debts.forEach(debt => {
+            const tax = debt.totalAmount * percentTax;
+            const itemTotal = debt.totalAmount + tax;
+            totalTax += tax;
+            total += itemTotal;
+            cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title'; // Si el título es null o undefined
+            cartItems[`cart.items[${itemIndex}].description`] = `Description: ${debt.titleName || 'No description'}`; // Si no hay descripción
+            cartItems[`cart.items[${itemIndex}].price`] = itemIndex == 0 ? debt.totalAmount.toString() : '0';
+            cartItems[`cart.items[${itemIndex}].quantity`] = '1';
+            itemIndex += 1;
+        });
+        total += base_0;
         // const query = querystring.stringify({
         //     entityId,
-        //     amount: debt?.totalAmount,
+        //     amount: total.toFixed(2),
         //     currency,
         //     paymentType: 'DB',
         //     'customer.givenName': customer.name,
@@ -101,50 +120,13 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         //     'customParameters[SHOPPER_ECI]': '0103910',
         //     'customParameters[SHOPPER_PSERV]': '17913101',
         //     'customParameters[SHOPPER_VAL_BASE0]': base_0,
-        //     'customParameters[SHOPPER_VAL_BASEIMP]': debt?.totalAmount,
-        //     'customParameters[SHOPPER_VAL_IVA]': parseFloat(tax.toFixed(2)),
-        //     'cart.items[0].name': debt.titleName,
-        //     'cart.items[0].description': `Description: ${debt.titleName}`,
-        //     'cart.items[0].price': debt?.totalAmount,
-        //     'cart.items[0].quantity': 1,
+        //     'customParameters[SHOPPER_VAL_BASEIMP]': total.toFixed(2),
+        //     'customParameters[SHOPPER_VAL_IVA]': parseFloat(totalTax.toFixed(2)),
+        //     'cart.items': JSON.stringify(cartItems),
         //     'customParameters[SHOPPER_VERSIONDF]': '2',
         //     'testMode': 'EXTERNAL'
         // });
-        const query = querystring_1.default.stringify({
-            entityId,
-            amount: "3.15",
-            currency,
-            paymentType: 'DB',
-            'customer.givenName': customer.name,
-            'customer.middleName': customer.middlename,
-            'customer.surname': customer.lastname,
-            'customer.ip': req.ip,
-            'customer.merchantCustomerId': customer.id.toString(),
-            'merchantTransactionId': transaction,
-            'customer.email': customer.email,
-            'customer.identificationDocType': 'IDCARD',
-            'customer.identificationDocId': customer.username,
-            'customer.phone': customer.phone,
-            'billing.street1': customer.address,
-            'billing.country': customer.country,
-            'billing.postcode': customer.postCode,
-            'shipping.street1': customer.address,
-            'shipping.country': customer.country,
-            'risk.parameters[SHOPPER_MID]': mid_risk,
-            'customParameters[SHOPPER_MID]': mid,
-            'customParameters[SHOPPER_TID]': tid,
-            'customParameters[SHOPPER_ECI]': '0103910',
-            'customParameters[SHOPPER_PSERV]': '17913101',
-            'customParameters[SHOPPER_VAL_BASE0]': "2.00",
-            'customParameters[SHOPPER_VAL_BASEIMP]': "1.00",
-            'customParameters[SHOPPER_VAL_IVA]': "0.15",
-            'cart.items[0].name': debt.titleName,
-            'cart.items[0].description': `Description: ${debt.titleName}`,
-            'cart.items[0].price': 1,
-            'cart.items[0].quantity': 1,
-            'customParameters[SHOPPER_VERSIONDF]': '2',
-            'testMode': 'EXTERNAL'
-        });
+        const query = querystring_1.default.stringify(Object.assign({ entityId, amount: "3.15", currency, paymentType: 'DB', 'customer.givenName': customer.name, 'customer.middleName': customer.middlename, 'customer.surname': customer.lastname, 'customer.ip': req.ip, 'customer.merchantCustomerId': customer.id.toString(), 'merchantTransactionId': transaction, 'customer.email': customer.email, 'customer.identificationDocType': 'IDCARD', 'customer.identificationDocId': customer.username, 'customer.phone': customer.phone, 'billing.street1': customer.address, 'billing.country': customer.country, 'billing.postcode': customer.postCode, 'shipping.street1': customer.address, 'shipping.country': customer.country, 'risk.parameters[SHOPPER_MID]': mid_risk, 'customParameters[SHOPPER_MID]': mid, 'customParameters[SHOPPER_TID]': tid, 'customParameters[SHOPPER_ECI]': '0103910', 'customParameters[SHOPPER_PSERV]': '17913101', 'customParameters[SHOPPER_VAL_BASE0]': "2.00", 'customParameters[SHOPPER_VAL_BASEIMP]': "1.00", 'customParameters[SHOPPER_VAL_IVA]': "0.15", 'customParameters[SHOPPER_VERSIONDF]': '2', 'testMode': 'EXTERNAL' }, cartItems));
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}?${query}`;
         const { data } = yield axios_1.default.post(url, {}, {
             headers: {

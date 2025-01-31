@@ -9,14 +9,14 @@ const router = (0, express_1.Router)();
 router.get('/', validate_jwt_1.validateJWT, debt_1.getAllDebtsByUser);
 router.get('/:id', validate_jwt_1.validateJWT, debt_1.getDebtById);
 router.post('/', [
-    (0, express_validator_1.check)('customerId', 'Name is required').not().isEmpty(),
-    (0, express_validator_1.check)('titleName', 'Name is required').not().isEmpty(),
-    (0, express_validator_1.check)('shopperName', 'Name is required').not().isEmpty(),
-    (0, express_validator_1.check)('localCode', 'Name is required').not().isEmpty(),
-    (0, express_validator_1.check)('plotId', 'Name is required').not().isEmpty(),
-    (0, express_validator_1.check)('actionLiquidationType', 'Name is required').not().isEmpty(),
-    (0, express_validator_1.check)('liquidationState', 'Name is required').not().isEmpty(),
-    (0, express_validator_1.check)('year', 'Name is required').not().isEmpty(),
+    (0, express_validator_1.check)('customerId', 'customerId is required').not().isEmpty(),
+    (0, express_validator_1.check)('titleName', 'titleName is required').not().isEmpty(),
+    (0, express_validator_1.check)('shopperName', 'shopperName is required').not().isEmpty(),
+    (0, express_validator_1.check)('localCode', 'localCode is required').not().isEmpty(),
+    (0, express_validator_1.check)('plotId', 'plotId is required').not().isEmpty(),
+    (0, express_validator_1.check)('actionLiquidationType', 'actionLiquidationType is required').not().isEmpty(),
+    (0, express_validator_1.check)('liquidationState', 'liquidationState is required').not().isEmpty(),
+    (0, express_validator_1.check)('year', 'year is required').not().isEmpty(),
     validate_fields_1.validateFields
 ], validate_jwt_1.validateJWT, debt_1.saveDebt);
 exports.default = router;

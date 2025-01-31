@@ -7,15 +7,15 @@ import { validateFields } from "../middlewares/validate-fields";
 const router = Router();
 router.post('/requestCheckout', 
     [
-        check('customerId', 'Name is required').not().isEmpty(),
-        check('debtId', 'Name is required').not().isEmpty(),
+        check('customerId', 'customerId is required').not().isEmpty(),
+        check('debtIds', 'debtIds is required').not().isEmpty(),
         validateFields
     ],
     validateJWT,
     requestCheckout);
 router.post('/savePayment', 
     [
-        check('checkoutId', 'Name is required').not().isEmpty(),
+        check('checkoutId', 'checkoutId is required').not().isEmpty(),
         validateFields
     ],
     validateJWT,

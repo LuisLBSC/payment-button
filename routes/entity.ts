@@ -19,7 +19,7 @@ router.get('/getByName/:name',
 router.post('/',
     [
         check('name', 'Name is required').not().isEmpty(),
-        check('description', 'Name is required').not().isEmpty(),
+        check('description', 'Description is required').not().isEmpty(),
         validateFields
     ],
     validateJWT,
@@ -28,7 +28,7 @@ router.post('/',
 router.put('/:id',
     [
         check('name', 'Name is required').not().isEmpty(),
-        check('description', 'Name is required').not().isEmpty(),
+        check('description', 'Description is required').not().isEmpty(),
         validateFields
     ],
     validateJWT,
@@ -36,7 +36,7 @@ router.put('/:id',
 router.put('/updateByName/:name',
     [
         check('name', 'Name is required').not().isEmpty(),
-        check('description', 'Name is required').not().isEmpty(),
+        check('description', 'Description is required').not().isEmpty(),
         validateFields
     ],
     validateJWT,
