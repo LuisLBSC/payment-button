@@ -217,9 +217,9 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
         );
         console.log(data);
         let transactionState = 'RECHAZADO';
-        if (data.card) {
-            const { card, result, resultDetails, cart, customer, customParameters } = data;
-            transactionState = !cart.items || cart.items.length === 0 ? 'RECHAZADO' : 'PROCESADO';
+        const { card, result, resultDetails, cart, customer, customParameters } = data;
+        if (!resultDetails.ExtendedDescription.includes("Transaccion rechazada")) {
+            transactionState = 'PROCESADO';
                         
             const newTransaction = await prisma.transaction.upsert({
                 create: {
@@ -290,7 +290,6 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                 },
             });
         } else {
-            const { result, resultDetails, customer, customParameters } = data;
             const newTransaction = await prisma.transaction.upsert({
                 create: {
                     type: data.paymentType,
