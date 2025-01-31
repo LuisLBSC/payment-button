@@ -84,6 +84,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         const base_0 = typeof base0 === 'string' ? parseFloat(base0) : base0 ?? 0;
         const transaction = `transaction#${Date.now()}`;
         
+        let itemIndex = 0;
         let total = 0;
         let cartItems: { [key: string]: string } = {};
         let valueNoTax = 0;
@@ -98,6 +99,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             cartItems[`cart.items[${itemIndex}].description`] = `${debt.localCode || 'No description'}`;
             cartItems[`cart.items[${itemIndex}].price`] = debt.totalAmount.toString();
             cartItems[`cart.items[${itemIndex}].quantity`] = '1';
+            itemIndex++;
         });
 
         const query = querystring.stringify({
