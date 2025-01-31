@@ -77,15 +77,20 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         const transaction = `transaction#${Date.now()}`;
         let total = 0;
         let cartItems = {};
-        let itemIndex = 0;
+        let valueNoTax = 0;
+        let valueTax = 0;
         debts.forEach(debt => {
+            const tax = debt.totalAmount * percentTax;
+            const debtNoTax = debt.totalAmount - tax;
+            valueTax += tax;
+            valueNoTax += valueNoTax;
             total += debt.totalAmount;
             cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title';
             cartItems[`cart.items[${itemIndex}].description`] = `${debt.localCode || 'No description'}`;
             cartItems[`cart.items[${itemIndex}].price`] = debt.totalAmount.toString();
             cartItems[`cart.items[${itemIndex}].quantity`] = '1';
         });
-        const query = querystring_1.default.stringify(Object.assign({ entityId, amount: total.toFixed(2), currency, paymentType: 'DB', 'customer.givenName': customer.name, 'customer.middleName': customer.middlename, 'customer.surname': customer.lastname, 'customer.ip': req.ip, 'customer.merchantCustomerId': customer.id.toString(), 'merchantTransactionId': transaction, 'customer.email': customer.email, 'customer.identificationDocType': 'IDCARD', 'customer.identificationDocId': customer.username, 'customer.phone': customer.phone, 'billing.street1': customer.address, 'billing.country': customer.country, 'billing.postcode': customer.postCode, 'shipping.street1': customer.address, 'shipping.country': customer.country, 'risk.parameters[SHOPPER_MID]': mid_risk, 'customParameters[SHOPPER_MID]': mid, 'customParameters[SHOPPER_TID]': tid, 'customParameters[SHOPPER_ECI]': '0103910', 'customParameters[SHOPPER_PSERV]': '17913101', 'customParameters[SHOPPER_VAL_BASE0]': 0, 'customParameters[SHOPPER_VAL_BASEIMP]': total.toFixed(2), 'customParameters[SHOPPER_VAL_IVA]': (total * percentTax).toFixed(2), 'customParameters[SHOPPER_VERSIONDF]': '2', 'testMode': 'EXTERNAL' }, cartItems));
+        const query = querystring_1.default.stringify(Object.assign({ entityId, amount: total.toFixed(2), currency, paymentType: 'DB', 'customer.givenName': customer.name, 'customer.middleName': customer.middlename, 'customer.surname': customer.lastname, 'customer.ip': req.ip, 'customer.merchantCustomerId': customer.id.toString(), 'merchantTransactionId': transaction, 'customer.email': customer.email, 'customer.identificationDocType': 'IDCARD', 'customer.identificationDocId': customer.username, 'customer.phone': customer.phone, 'billing.street1': customer.address, 'billing.country': customer.country, 'billing.postcode': customer.postCode, 'shipping.street1': customer.address, 'shipping.country': customer.country, 'risk.parameters[SHOPPER_MID]': mid_risk, 'customParameters[SHOPPER_MID]': mid, 'customParameters[SHOPPER_TID]': tid, 'customParameters[SHOPPER_ECI]': '0103910', 'customParameters[SHOPPER_PSERV]': '17913101', 'customParameters[SHOPPER_VAL_BASE0]': 0, 'customParameters[SHOPPER_VAL_BASEIMP]': valueNoTax.toFixed(2), 'customParameters[SHOPPER_VAL_IVA]': valueTax.toFixed(2), 'customParameters[SHOPPER_VERSIONDF]': '2', 'testMode': 'EXTERNAL' }, cartItems));
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}?${query}`;
         const { data } = yield axios_1.default.post(url, {}, {
             headers: {

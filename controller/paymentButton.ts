@@ -86,8 +86,13 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         
         let total = 0;
         let cartItems: { [key: string]: string } = {};
-        let itemIndex = 0; 
+        let valueNoTax = 0;
+        let valueTax = 0; 
         debts.forEach(debt => {
+            const tax = debt.totalAmount * percentTax;
+            const debtNoTax = debt.totalAmount - tax;
+            valueTax += tax;
+            valueNoTax += valueNoTax;
             total += debt.totalAmount;
             cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title';
             cartItems[`cart.items[${itemIndex}].description`] = `${debt.localCode || 'No description'}`;
@@ -121,8 +126,8 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
             'customParameters[SHOPPER_VAL_BASE0]': 0,
-            'customParameters[SHOPPER_VAL_BASEIMP]': total.toFixed(2),
-            'customParameters[SHOPPER_VAL_IVA]': (total * percentTax).toFixed(2),
+            'customParameters[SHOPPER_VAL_BASEIMP]': valueNoTax.toFixed(2),
+            'customParameters[SHOPPER_VAL_IVA]': valueTax.toFixed(2),
             'customParameters[SHOPPER_VERSIONDF]': '2',
             'testMode': 'EXTERNAL',
             ...cartItems
