@@ -107,7 +107,7 @@ model Payment {
   ipSession          String?
   macAddressUser     String?
   observation        String?
-  receiptNumber      String       @unique
+  receiptNumber      String
   bank_id            Int
   cardNumber         String       @db.VarChar
   cardExpirationDate String       @db.VarChar

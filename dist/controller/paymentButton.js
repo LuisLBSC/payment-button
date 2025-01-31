@@ -19,10 +19,7 @@ const querystring_1 = __importDefault(require("querystring"));
 const prisma = new client_1.PrismaClient();
 const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { customerId,
-        //debtIds,
-         } = req.body;
-        const debtIds = [6, 8];
+        const { customerId, debtIds, } = req.body;
         const customer = yield prisma.user.findFirst({ where: { id: customerId, active: 1 } });
         if (!customer) {
             return res.status(404).json({
@@ -89,7 +86,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             total += itemTotal;
             cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title'; // Si el título es null o undefined
             cartItems[`cart.items[${itemIndex}].description`] = `Description: ${debt.titleName || 'No description'}`; // Si no hay descripción
-            cartItems[`cart.items[${itemIndex}].price`] = itemIndex == 0 ? debt.totalAmount.toString() : '0';
+            cartItems[`cart.items[${itemIndex}].price`] = debt.totalAmount.toString();
             cartItems[`cart.items[${itemIndex}].quantity`] = '1';
             itemIndex += 1;
         });
