@@ -120,9 +120,9 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_TID]': tid,
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
-            'customParameters[SHOPPER_VAL_BASE0]': 1,
-            'customParameters[SHOPPER_VAL_BASEIMP]': base_0,
-            'customParameters[SHOPPER_VAL_IVA]': percentTax,
+            'customParameters[SHOPPER_VAL_BASE0]': 0,
+            'customParameters[SHOPPER_VAL_BASEIMP]': total.toFixed(2),
+            'customParameters[SHOPPER_VAL_IVA]': (total * percentTax).toFixed(2),
             'customParameters[SHOPPER_VERSIONDF]': '2',
             'testMode': 'EXTERNAL',
             ...cartItems
