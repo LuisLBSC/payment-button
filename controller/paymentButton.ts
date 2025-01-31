@@ -94,7 +94,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             totalTax += tax;
             total += itemTotal;
             cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title';  // Si el título es null o undefined
-            cartItems[`cart.items[${itemIndex}].description`] = `Description: ${debt.titleName || 'No description'}`;  // Si no hay descripción
+            cartItems[`cart.items[${itemIndex}].description`] = `${debt.localCode || 'No description'}`;  // Si no hay descripción
             cartItems[`cart.items[${itemIndex}].price`] = debt.totalAmount.toString();
             cartItems[`cart.items[${itemIndex}].quantity`] = '1';
             itemIndex += 1;
@@ -159,9 +159,9 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_TID]': tid,
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
-            'customParameters[SHOPPER_VAL_BASE0]': "2.00",
+            'customParameters[SHOPPER_VAL_BASE0]': "0",
             'customParameters[SHOPPER_VAL_BASEIMP]': "1.00",
-            'customParameters[SHOPPER_VAL_IVA]': "0.15",
+            'customParameters[SHOPPER_VAL_IVA]': "0",
             'customParameters[SHOPPER_VERSIONDF]': '2',
             'testMode': 'EXTERNAL',
             ...cartItems
@@ -255,9 +255,10 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
             }
         );
         console.log(data);
+        let transactionState = 'RECHAZADO';
         if (data.card) {
             const { card, result, resultDetails, cart, customer, customParameters } = data;
-            const transactionState = !cart.items || cart.items.length === 0 ? 'RECHAZADO' : 'PROCESADO';
+            transactionState = !cart.items || cart.items.length === 0 ? 'RECHAZADO' : 'PROCESADO';
                         
             const newTransaction = await prisma.transaction.upsert({
                 create: {
@@ -266,6 +267,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     trxId: data.id,
                     bankResponse: resultDetails.Response || '',
                     responseText: resultDetails.ExtendedDescription,
+                    lot: resultDetails.BatchNo,
                     reference: resultDetails.ReferenceNo,
                     acquirerId: parseInt(customer.merchantCustomerId),
                     authorization: parseInt(resultDetails.AuthCode) || 0,
@@ -281,6 +283,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     trxId: data.id,
                     bankResponse: resultDetails.Response || '',
                     responseText: resultDetails.ExtendedDescription,
+                    lot: resultDetails.BatchNo,
                     reference: resultDetails.ReferenceNo,
                     acquirerId: parseInt(customer.merchantCustomerId),
                     authorization: parseInt(resultDetails.AuthCode) || 0,
@@ -326,6 +329,42 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                 },
             });
         } else {
+            const { result, resultDetails, customer, customParameters } = data;
+            const newTransaction = await prisma.transaction.upsert({
+                create: {
+                    type: data.paymentType,
+                    state: transactionState,
+                    trxId: data.id,
+                    bankResponse: resultDetails.Response || '',
+                    responseText: resultDetails.ExtendedDescription,
+                    lot: resultDetails.BatchNo,
+                    reference: resultDetails.ReferenceNo,
+                    acquirerId: parseInt(customer.merchantCustomerId),
+                    authorization: parseInt(resultDetails.AuthCode) || 0,
+                    buttonResponse: result.code,
+                    amount: parseFloat(data.amount),
+                    interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    jsonResponse: JSON.stringify(data)
+                },
+                update: {
+                    type: data.paymentType,
+                    state: transactionState,
+                    trxId: data.id,
+                    bankResponse: resultDetails.Response || '',
+                    responseText: resultDetails.ExtendedDescription,
+                    lot: resultDetails.BatchNo,
+                    reference: resultDetails.ReferenceNo,
+                    acquirerId: parseInt(customer.merchantCustomerId),
+                    authorization: parseInt(resultDetails.AuthCode) || 0,
+                    buttonResponse: result.code,
+                    amount: parseFloat(data.amount),
+                    interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    jsonResponse: JSON.stringify(data)
+                },
+                where: {trxId: data.id}
+            });
             return res.status(404).json({
                 msg: `Unsuccessful payment: ${data.result.description}`,
                 error: true,

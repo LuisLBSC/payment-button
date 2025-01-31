@@ -85,7 +85,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             totalTax += tax;
             total += itemTotal;
             cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title'; // Si el título es null o undefined
-            cartItems[`cart.items[${itemIndex}].description`] = `Description: ${debt.titleName || 'No description'}`; // Si no hay descripción
+            cartItems[`cart.items[${itemIndex}].description`] = `${debt.localCode || 'No description'}`; // Si no hay descripción
             cartItems[`cart.items[${itemIndex}].price`] = debt.totalAmount.toString();
             cartItems[`cart.items[${itemIndex}].quantity`] = '1';
             itemIndex += 1;
@@ -123,7 +123,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         //     'customParameters[SHOPPER_VERSIONDF]': '2',
         //     'testMode': 'EXTERNAL'
         // });
-        const query = querystring_1.default.stringify(Object.assign({ entityId, amount: "3.15", currency, paymentType: 'DB', 'customer.givenName': customer.name, 'customer.middleName': customer.middlename, 'customer.surname': customer.lastname, 'customer.ip': req.ip, 'customer.merchantCustomerId': customer.id.toString(), 'merchantTransactionId': transaction, 'customer.email': customer.email, 'customer.identificationDocType': 'IDCARD', 'customer.identificationDocId': customer.username, 'customer.phone': customer.phone, 'billing.street1': customer.address, 'billing.country': customer.country, 'billing.postcode': customer.postCode, 'shipping.street1': customer.address, 'shipping.country': customer.country, 'risk.parameters[SHOPPER_MID]': mid_risk, 'customParameters[SHOPPER_MID]': mid, 'customParameters[SHOPPER_TID]': tid, 'customParameters[SHOPPER_ECI]': '0103910', 'customParameters[SHOPPER_PSERV]': '17913101', 'customParameters[SHOPPER_VAL_BASE0]': "2.00", 'customParameters[SHOPPER_VAL_BASEIMP]': "1.00", 'customParameters[SHOPPER_VAL_IVA]': "0.15", 'customParameters[SHOPPER_VERSIONDF]': '2', 'testMode': 'EXTERNAL' }, cartItems));
+        const query = querystring_1.default.stringify(Object.assign({ entityId, amount: "3.15", currency, paymentType: 'DB', 'customer.givenName': customer.name, 'customer.middleName': customer.middlename, 'customer.surname': customer.lastname, 'customer.ip': req.ip, 'customer.merchantCustomerId': customer.id.toString(), 'merchantTransactionId': transaction, 'customer.email': customer.email, 'customer.identificationDocType': 'IDCARD', 'customer.identificationDocId': customer.username, 'customer.phone': customer.phone, 'billing.street1': customer.address, 'billing.country': customer.country, 'billing.postcode': customer.postCode, 'shipping.street1': customer.address, 'shipping.country': customer.country, 'risk.parameters[SHOPPER_MID]': mid_risk, 'customParameters[SHOPPER_MID]': mid, 'customParameters[SHOPPER_TID]': tid, 'customParameters[SHOPPER_ECI]': '0103910', 'customParameters[SHOPPER_PSERV]': '17913101', 'customParameters[SHOPPER_VAL_BASE0]': "0", 'customParameters[SHOPPER_VAL_BASEIMP]': "1.00", 'customParameters[SHOPPER_VAL_IVA]': "0", 'customParameters[SHOPPER_VERSIONDF]': '2', 'testMode': 'EXTERNAL' }, cartItems));
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}?${query}`;
         const { data } = yield axios_1.default.post(url, {}, {
             headers: {
@@ -200,9 +200,10 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
             httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
         });
         console.log(data);
+        let transactionState = 'RECHAZADO';
         if (data.card) {
             const { card, result, resultDetails, cart, customer, customParameters } = data;
-            const transactionState = !cart.items || cart.items.length === 0 ? 'RECHAZADO' : 'PROCESADO';
+            transactionState = !cart.items || cart.items.length === 0 ? 'RECHAZADO' : 'PROCESADO';
             const newTransaction = yield prisma.transaction.upsert({
                 create: {
                     type: data.paymentType,
@@ -210,6 +211,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     trxId: data.id,
                     bankResponse: resultDetails.Response || '',
                     responseText: resultDetails.ExtendedDescription,
+                    lot: resultDetails.BatchNo,
                     reference: resultDetails.ReferenceNo,
                     acquirerId: parseInt(customer.merchantCustomerId),
                     authorization: parseInt(resultDetails.AuthCode) || 0,
@@ -225,6 +227,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     trxId: data.id,
                     bankResponse: resultDetails.Response || '',
                     responseText: resultDetails.ExtendedDescription,
+                    lot: resultDetails.BatchNo,
                     reference: resultDetails.ReferenceNo,
                     acquirerId: parseInt(customer.merchantCustomerId),
                     authorization: parseInt(resultDetails.AuthCode) || 0,
@@ -268,6 +271,42 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
             });
         }
         else {
+            const { result, resultDetails, customer, customParameters } = data;
+            const newTransaction = yield prisma.transaction.upsert({
+                create: {
+                    type: data.paymentType,
+                    state: transactionState,
+                    trxId: data.id,
+                    bankResponse: resultDetails.Response || '',
+                    responseText: resultDetails.ExtendedDescription,
+                    lot: resultDetails.BatchNo,
+                    reference: resultDetails.ReferenceNo,
+                    acquirerId: parseInt(customer.merchantCustomerId),
+                    authorization: parseInt(resultDetails.AuthCode) || 0,
+                    buttonResponse: result.code,
+                    amount: parseFloat(data.amount),
+                    interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    jsonResponse: JSON.stringify(data)
+                },
+                update: {
+                    type: data.paymentType,
+                    state: transactionState,
+                    trxId: data.id,
+                    bankResponse: resultDetails.Response || '',
+                    responseText: resultDetails.ExtendedDescription,
+                    lot: resultDetails.BatchNo,
+                    reference: resultDetails.ReferenceNo,
+                    acquirerId: parseInt(customer.merchantCustomerId),
+                    authorization: parseInt(resultDetails.AuthCode) || 0,
+                    buttonResponse: result.code,
+                    amount: parseFloat(data.amount),
+                    interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    jsonResponse: JSON.stringify(data)
+                },
+                where: { trxId: data.id }
+            });
             return res.status(404).json({
                 msg: `Unsuccessful payment: ${data.result.description}`,
                 error: true,
