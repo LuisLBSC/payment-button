@@ -85,58 +85,19 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         const transaction = `transaction#${Date.now()}`;
         
         let total = 0;
-        let totalTax = 0;
         let cartItems: { [key: string]: string } = {};
         let itemIndex = 0; 
         debts.forEach(debt => {
-            const tax = debt.totalAmount * percentTax;
-            const itemTotal = debt.totalAmount + tax;
-            totalTax += tax;
-            total += itemTotal;
-            cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title';  // Si el título es null o undefined
-            cartItems[`cart.items[${itemIndex}].description`] = `${debt.localCode || 'No description'}`;  // Si no hay descripción
+            total += debt.totalAmount;
+            cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title';
+            cartItems[`cart.items[${itemIndex}].description`] = `${debt.localCode || 'No description'}`;
             cartItems[`cart.items[${itemIndex}].price`] = debt.totalAmount.toString();
             cartItems[`cart.items[${itemIndex}].quantity`] = '1';
-            itemIndex += 1;
         });
-        total += base_0;
-
-        // const query = querystring.stringify({
-        //     entityId,
-        //     amount: total.toFixed(2),
-        //     currency,
-        //     paymentType: 'DB',
-        //     'customer.givenName': customer.name,
-        //     'customer.middleName': customer.middlename,
-        //     'customer.surname': customer.lastname,
-        //     'customer.ip': req.ip,
-        //     'customer.merchantCustomerId': customer.id.toString(),
-        //     'merchantTransactionId': transaction,
-        //     'customer.email': customer.email,
-        //     'customer.identificationDocType': 'IDCARD',
-        //     'customer.identificationDocId': customer.username,
-        //     'customer.phone': customer.phone,
-        //     'billing.street1': customer.address,
-        //     'billing.country': customer.country,
-        //     'billing.postcode': customer.postCode,
-        //     'shipping.street1': customer.address,
-        //     'shipping.country': customer.country,
-        //     'risk.parameters[SHOPPER_MID]': mid_risk,
-        //     'customParameters[SHOPPER_MID]': mid,
-        //     'customParameters[SHOPPER_TID]': tid,
-        //     'customParameters[SHOPPER_ECI]': '0103910',
-        //     'customParameters[SHOPPER_PSERV]': '17913101',
-        //     'customParameters[SHOPPER_VAL_BASE0]': base_0,
-        //     'customParameters[SHOPPER_VAL_BASEIMP]': total.toFixed(2),
-        //     'customParameters[SHOPPER_VAL_IVA]': parseFloat(totalTax.toFixed(2)),
-        //     'cart.items': JSON.stringify(cartItems),
-        //     'customParameters[SHOPPER_VERSIONDF]': '2',
-        //     'testMode': 'EXTERNAL'
-        // });
 
         const query = querystring.stringify({
             entityId,
-            amount: "3.15",
+            amount: total.toFixed(2),
             currency,
             paymentType: 'DB',
             'customer.givenName': customer.name,
@@ -159,9 +120,9 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_TID]': tid,
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
-            'customParameters[SHOPPER_VAL_BASE0]': "0",
-            'customParameters[SHOPPER_VAL_BASEIMP]': "1.00",
-            'customParameters[SHOPPER_VAL_IVA]': "0",
+            'customParameters[SHOPPER_VAL_BASE0]': 1,
+            'customParameters[SHOPPER_VAL_BASEIMP]': total.toFixed(2),
+            'customParameters[SHOPPER_VAL_IVA]': 0,
             'customParameters[SHOPPER_VERSIONDF]': '2',
             'testMode': 'EXTERNAL',
             ...cartItems
