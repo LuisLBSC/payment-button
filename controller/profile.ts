@@ -6,26 +6,30 @@ const prisma = new PrismaClient();
 
 export const getAllProfiles = async(req: Request, res: Response) => {
     try {
-        const profiles = await prisma.profile.findMany({where: {active : 1}, include: { roles: {include: { role: { include: { roleDetails: true } } } } }});
+        const profiles = await prisma.profile.findMany({where: {active : 1}, 
+            include: { 
+                roles: { 
+                    include: {
+                        role: {
+                            include: {
+                                entities: {
+                                    include: {
+                                        entity: true 
+                                    }
+                                }
+                            }
+                        }
+                    } 
+                }
+            }
         
-        const transformedProfiles = profiles.map((profile) => ({
-            id: profile.id,
-            name: profile.name,
-            description: profile.description,
-            active: profile.active,
-            roles: profile.roles.map((roleRelation) => ({
-                id: roleRelation.role.id,
-                name: roleRelation.role.name,
-                description: roleRelation.role.description,
-                active: roleRelation.role.active,
-                entities: roleRelation.role.roleDetails.map((detail) => detail.entity),
-            })),
-        }));
+        });
+
         res.json({
             msg: 'ok',
             error: false,
-            records: transformedProfiles.length,
-            data: transformedProfiles
+            records: profiles.length,
+            data: profiles
         });
     } catch (error) {
         console.log(error);
@@ -42,30 +46,33 @@ export const getProfileById = async(req: Request, res: Response) => {
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         
-        const existingProfile = await prisma.profile.findFirst({where: {id: idNumber}, include: { roles: {include: { role: { include: { roleDetails: true } } } } }});
+        const existingProfile = await prisma.profile.findFirst({where: {id: idNumber}, 
+            include: { 
+                roles: { 
+                    include: {
+                        role: {
+                            include: {
+                                entities: {
+                                    include: {
+                                        entity: true 
+                                    }
+                                }
+                            }
+                        }
+                    } 
+                }
+            }
+        });
         
         if(!existingProfile)
             res.status(404).json({msg: 'Profile not found', error: false, data:[]});
     
-        const transformedProfile = {
-            id: existingProfile?.id,
-            name: existingProfile?.name,
-            description: existingProfile?.description,
-            active: existingProfile?.active,
-            roles: existingProfile?.roles.map((roleRelation) => ({
-                id: roleRelation.role.id,
-                name: roleRelation.role.name,
-                description: roleRelation.role.description,
-                active: roleRelation.role.active,
-                entities: roleRelation.role.roleDetails.map((detail) => detail.entity),
-            })),
-        };
 
         res.json({
             msg: 'ok',
             error: false,
             records: 1,
-            data: transformedProfile
+            data: existingProfile
         });
     } catch (error) {
         console.log(error);
@@ -119,7 +126,7 @@ export const saveProfile = async(req: Request, res: Response) => {
 
                 res.json({
                     updatedProfile,
-                    msg: `User ${updatedProfile.name} updated with existing roles`
+                    msg: `Profile ${updatedProfile.name} updated with existing roles`
                 });
             }
         }
@@ -136,7 +143,7 @@ export const saveProfile = async(req: Request, res: Response) => {
 
             res.json({
                 newProfile,
-                msg: `User ${newProfile.name} created with roles`
+                msg: `Profile ${newProfile.name} created with roles`
             });
         }
     } catch (error) {

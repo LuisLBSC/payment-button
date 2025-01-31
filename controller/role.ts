@@ -6,21 +6,13 @@ const prisma = new PrismaClient();
 
 export const getAllRoles = async (req: Request, res: Response) => {
     try {
-        const roles = await prisma.role.findMany({ include: { roleDetails: {where: { active: 1 }} } });
-
-        const transformedRoles = roles.map((role) => ({
-            id: role.id,
-            name: role.name,
-            description: role.description,
-            active: role.active,
-            entities: role.roleDetails.map((detail) => detail.entity),
-        }));
+        const roles = await prisma.role.findMany({ include: { entities: { include: { entity: true } } } });
 
         res.json({
             msg: 'ok',
             error: false,
-            records: transformedRoles.length,
-            data: transformedRoles
+            records: roles.length,
+            data: roles
         })
     } catch (error) {
         console.log(error);
@@ -37,24 +29,16 @@ export const getRoleById = async (req: Request, res: Response) => {
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
 
-        const existingRole = await prisma.role.findFirst({ where: { id: idNumber }, include: { roleDetails: {where: { active: 1 }} } });
+        const existingRole = await prisma.role.findFirst({ where: { id: idNumber }, include: { entities: { include: { entity: true } } } });
 
         if (!existingRole)
             res.status(404).json({ msg: 'Role not found', error: false, data: [] });
-
-        const transformedRole = {
-            id: existingRole?.id,
-            name: existingRole?.name,
-            description: existingRole?.description,
-            active: existingRole?.active,
-            entities: existingRole?.roleDetails.map((detail) => detail.entity),
-        };
 
         res.json({
             msg: 'ok',
             error: false,
             records: 1,
-            data: transformedRole
+            data: existingRole
         });
     } catch (error) {
         console.log(error);
@@ -69,55 +53,67 @@ export const getRoleById = async (req: Request, res: Response) => {
 
 export const saveRole = async (req: Request, res: Response) => {
     try {
-        const { name, description, active, entities } = req.body;
-        if (!Array.isArray(entities)) {
-            return res.status(400).json({
-                msg: "roleDetails must be an array of entity names",
-            });
-        }
-        const newRole = await prisma.role.upsert({
-            create: { name, description },
-            update: { name, description, active },
-            where: { name }
+        const { name, description, active, entityIds } = req.body;
+
+        const existingRole = await prisma.role.findUnique({
+            where: { name },
+            include: { entities: true }
         });
         
-        const currentRoleDetails = await prisma.roleDetail.findMany({
-            where: { roleId: newRole.id },
-        });
-        const currentEntities = currentRoleDetails.map((rd) => rd.entity);
-        const entitiesToDeactivate = currentEntities.filter(
-            (entity) => !entities.includes(entity)
-        );
-        await prisma.roleDetail.updateMany({
-            where: {
-                roleId: newRole.id,
-                entity: { in: entitiesToDeactivate },
-            },
-            data: { active: 0 },
-        });
+        if(existingRole){
 
-        for (const entity of entities) {
-            await prisma.roleDetail.upsert({
-                create: {
-                    roleId: newRole.id,
-                    entity,
-                },
-                update: {
-                    active: 1,
-                },
-                where: {
-                    roleId_entity: {
-                        roleId: newRole.id,
-                        entity,
-                    },
-                },
+            const existingEntityIds = existingRole?.entities.map(entity => entity.entityId);
+            const newEntityIds = entityIds.filter((entityId: number) => !existingEntityIds?.includes(entityId));
+        
+            if (newEntityIds.length > 0) {
+                const updatedRole = await prisma.role.update({
+                    where: {name},
+                    data: {
+                        description,
+                        active: 1,
+                        entities: {
+                            create: newEntityIds.map((entityId: number) => ({ entityId }))
+                        }
+                    }
+                });
+
+                res.json({
+                    updatedRole,
+                    msg: `Role ${updatedRole.name} updated and new entities assigned`
+                });
+            }
+            else{
+                const updatedRole = await prisma.role.update({
+                    where: { name },
+                    data: {
+                        description,
+                        active: 1
+                    }
+                });
+
+                res.json({
+                    updatedRole,
+                    msg: `Role ${updatedRole.name} updated with existing entities`
+                });
+            }
+        }
+        else{
+            const newRole = await prisma.role.create({
+                data: {
+                    name,
+                    description,
+                    entities: {
+                        create: entityIds.map((entityId: number) => ({ entityId }))
+                    }
+                }
+            });
+
+            res.json({
+                newRole,
+                msg: `Role ${newRole.name} created with roles`
             });
         }
 
-        res.json({
-            newRole,
-            msg: `Role ${newRole.name} created`
-        });
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -131,58 +127,51 @@ export const updateRoleById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const idNumber = parseInt(id, 10);
-        const { name, description, active, entities } = req.body;
+        const { name, description, active, entityIds } = req.body;
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        const updatingRole = await prisma.role.findFirst({ where: { id: idNumber } });
+        const updatingRole = await prisma.role.findFirst({ where: { id: idNumber }, include: { entities: true } });
         if (!updatingRole)
             res.status(404).json({ msg: 'Role not found', error: false, data: [] });
 
-        const updatedRole = await prisma.role.update({
-            where: { id: idNumber },
-            data: { name, description, active },
-        });
+        const existingEntityIds = updatingRole?.entities.map(entity => entity.entityId);
+        const newEntityIds = entityIds.filter((entityId : number) => !existingEntityIds?.includes(entityId) );
 
-        if (Array.isArray(entities)) {
-            const currentRoleDetails = await prisma.roleDetail.findMany({
-                where: { roleId: idNumber },
-            });
-
-            const currentEntities = currentRoleDetails.map((rd) => rd.entity);
-            const entitiesToDeactivate = currentEntities.filter(
-                (entity) => !entities.includes(entity)
-            );
-            await prisma.roleDetail.updateMany({
+        if (newEntityIds.length > 0) {
+            const updatingRole = await prisma.role.update({
                 where: {
-                    roleId: idNumber,
-                    entity: { in: entitiesToDeactivate },
+                    id: idNumber
                 },
-                data: { active: 0 },
+                data: {
+                    description,
+                    active: 1,
+                    entities: {
+                        create: newEntityIds.map((entityId: number) => ({ entityId }))
+                    }
+                }
             });
 
-            for (const entity of entities) {
-                await prisma.roleDetail.upsert({
-                    where: {
-                        roleId_entity: {
-                            roleId: idNumber,
-                            entity,
-                        },
-                    },
-                    update: {
-                        active: 1,
-                    },
-                    create: {
-                        roleId: idNumber,
-                        entity,
-                    },
-                });
-            }
+            res.status(200).json({
+                updatingRole,
+                msg: `Role ${updatingRole.name} updated and new entities assigned`,
+                error: false
+            });
         }
+        else{
+            const updatingRole = await prisma.role.update({
+                where: {
+                    id: idNumber
+                },
+                data: {
+                    description,
+                    active: 1
+                }
+            });
 
-        res.status(200).json({
-            msg: `Role ${updatedRole.name} updated`,
-            error: false,
-            records: 1
-        });
+            res.status(200).json({
+                updatingRole,
+                msg: `Role ${updatingRole.name} updated with existing entities`
+            });
+        }
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -220,9 +209,8 @@ export const deleteRoleById = async (req: Request, res: Response) => {
             }
         });
 
-        await prisma.roleDetail.updateMany({
-            where: { roleId: idNumber },
-            data: { active: 0 },
+        await prisma.roleEntity.deleteMany({
+            where: { roleId: idNumber }
         });
 
         res.status(200).json({

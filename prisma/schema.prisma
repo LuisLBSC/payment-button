@@ -46,17 +46,16 @@ model Role {
   description String?
   active      Int?          @default(1)
   profiles    ProfileRole[]
-  roleDetails RoleDetail[]
+  entities    RoleEntity[]
 }
 
-model RoleDetail {
-  id     Int    @id @default(autoincrement())
-  roleId Int
-  entity String
-  active Int?   @default(1)
-  role   Role   @relation(fields: [roleId], references: [id])
-
-  @@unique([roleId, entity])
+model RoleEntity {
+  id         Int      @id @default(autoincrement())
+  roleId     Int
+  role       Role     @relation(fields: [roleId], references: [id])
+  entityId   Int
+  entity     Entity   @relation(fields: [entityId], references: [id])
+  assignedAt DateTime @default(now())
 }
 
 model ProfileRole {
@@ -145,8 +144,9 @@ model Transaction {
 }
 
 model Entity {
-  name        String  @unique
+  name        String       @unique
   description String?
-  active      Int?    @default(1)
-  id          Int     @id @default(autoincrement())
+  active      Int?         @default(1)
+  id          Int          @id @default(autoincrement())
+  RoleEntity  RoleEntity[]
 }
