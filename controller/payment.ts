@@ -6,8 +6,8 @@ const prisma = new PrismaClient();
 
 export const getAllPaymentsByUser = async(req: Request, res: Response) => {
     try {
-        const {id} = req.body;
         const {
+            id,
             lot,
             state,
             type

@@ -14,8 +14,7 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getAllPaymentsByUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id } = req.body;
-        const { lot, state, type } = req.query;
+        const { id, lot, state, type } = req.query;
         const dateStart = req.query.dateStart;
         const dateEnd = req.query.dateEnd;
         const filters = {};
