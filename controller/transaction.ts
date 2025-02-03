@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 export const getAllTransactions = async(req: Request, res: Response) => {
     try {
         const {
-            id,
+            trxId,
             lot,
             state
         } = req.query;
@@ -13,7 +13,7 @@ export const getAllTransactions = async(req: Request, res: Response) => {
         const dateEnd = req.query.dateEnd as string;
         const filters: any = {};
         
-        if (id) filters.id = parseInt(id as string, 10);
+        if (trxId) filters.trxId = { contains: trxId, mode: 'insensitive' };
         if (lot) filters.lot = { contains: lot, mode: 'insensitive' };
         if (state) filters.state = { contains: state, mode: 'insensitive' };
         if(dateStart || dateEnd){

@@ -93,7 +93,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             const tax = debt.totalAmount * percentTax;
             const debtNoTax = debt.totalAmount - tax;
             valueTax += tax;
-            valueNoTax += valueNoTax;
+            valueNoTax += debtNoTax;
             total += debt.totalAmount;
             cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title';
             cartItems[`cart.items[${itemIndex}].description`] = `${debt.localCode || 'No description'}`;
@@ -102,7 +102,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             itemIndex++;
         });
 
-        const query = querystring.stringify({
+        const queryObject = {
             entityId,
             amount: total.toFixed(2),
             currency,
@@ -127,13 +127,15 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_TID]': tid,
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
-            'customParameters[SHOPPER_VAL_BASE0]': 0,
-            'customParameters[SHOPPER_VAL_BASEIMP]': valueNoTax.toFixed(2),
+            'customParameters[SHOPPER_VAL_BASE0]': 1,
+            'customParameters[SHOPPER_VAL_BASEIMP]': (valueNoTax-1).toFixed(2),
             'customParameters[SHOPPER_VAL_IVA]': valueTax.toFixed(2),
             'customParameters[SHOPPER_VERSIONDF]': '2',
             'testMode': 'EXTERNAL',
             ...cartItems
-        });
+        };
+
+        const query = querystring.stringify(queryObject);
 
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}?${query}`;
 
@@ -222,7 +224,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                 httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
             }
         );
-        console.log(data);
+
         let transactionState = 'RECHAZADO';
         const { card, result, resultDetails, cart, customer, customParameters } = data;
         if (!resultDetails.ExtendedDescription.includes("Transaccion rechazada")) {
@@ -242,7 +244,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     buttonResponse: result.code,
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount),
                     jsonResponse: JSON.stringify(data)
                 },
                 update: {
@@ -258,7 +260,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     buttonResponse: result.code,
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount),
                     jsonResponse: JSON.stringify(data)
                 },
                 where: {trxId: data.id}
@@ -311,7 +313,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     buttonResponse: result.code,
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount),
                     jsonResponse: JSON.stringify(data)
                 },
                 update: {
@@ -327,7 +329,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     buttonResponse: result.code,
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount),
                     jsonResponse: JSON.stringify(data)
                 },
                 where: {trxId: data.id}

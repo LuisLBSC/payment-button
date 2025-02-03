@@ -35,7 +35,7 @@ class Server {
         this.routes();
     }
     middlewares() {
-        //add this line for cors
+        // add this line for cors
         this.app.use((req, res, next) => {
             res.header("Access-Control-Allow-Origin", "*");
             res.header("Access-Control-Allow-Headers", "auth-token, Content-Type");

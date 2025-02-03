@@ -14,12 +14,12 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getAllTransactions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id, lot, state } = req.query;
+        const { trxId, lot, state } = req.query;
         const dateStart = req.query.dateStart;
         const dateEnd = req.query.dateEnd;
         const filters = {};
-        if (id)
-            filters.id = parseInt(id, 10);
+        if (trxId)
+            filters.trxId = { contains: trxId, mode: 'insensitive' };
         if (lot)
             filters.lot = { contains: lot, mode: 'insensitive' };
         if (state)

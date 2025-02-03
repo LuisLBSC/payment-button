@@ -84,7 +84,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             const tax = debt.totalAmount * percentTax;
             const debtNoTax = debt.totalAmount - tax;
             valueTax += tax;
-            valueNoTax += valueNoTax;
+            valueNoTax += debtNoTax;
             total += debt.totalAmount;
             cartItems[`cart.items[${itemIndex}].name`] = debt.titleName || 'No title';
             cartItems[`cart.items[${itemIndex}].description`] = `${debt.localCode || 'No description'}`;
@@ -92,7 +92,8 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             cartItems[`cart.items[${itemIndex}].quantity`] = '1';
             itemIndex++;
         });
-        const query = querystring_1.default.stringify(Object.assign({ entityId, amount: total.toFixed(2), currency, paymentType: 'DB', 'customer.givenName': customer.name, 'customer.middleName': customer.middlename, 'customer.surname': customer.lastname, 'customer.ip': req.ip, 'customer.merchantCustomerId': customer.id.toString(), 'merchantTransactionId': transaction, 'customer.email': customer.email, 'customer.identificationDocType': 'IDCARD', 'customer.identificationDocId': customer.username, 'customer.phone': customer.phone, 'billing.street1': customer.address, 'billing.country': customer.country, 'billing.postcode': customer.postCode, 'shipping.street1': customer.address, 'shipping.country': customer.country, 'risk.parameters[SHOPPER_MID]': mid_risk, 'customParameters[SHOPPER_MID]': mid, 'customParameters[SHOPPER_TID]': tid, 'customParameters[SHOPPER_ECI]': '0103910', 'customParameters[SHOPPER_PSERV]': '17913101', 'customParameters[SHOPPER_VAL_BASE0]': 0, 'customParameters[SHOPPER_VAL_BASEIMP]': valueNoTax.toFixed(2), 'customParameters[SHOPPER_VAL_IVA]': valueTax.toFixed(2), 'customParameters[SHOPPER_VERSIONDF]': '2', 'testMode': 'EXTERNAL' }, cartItems));
+        const queryObject = Object.assign({ entityId, amount: total.toFixed(2), currency, paymentType: 'DB', 'customer.givenName': customer.name, 'customer.middleName': customer.middlename, 'customer.surname': customer.lastname, 'customer.ip': req.ip, 'customer.merchantCustomerId': customer.id.toString(), 'merchantTransactionId': transaction, 'customer.email': customer.email, 'customer.identificationDocType': 'IDCARD', 'customer.identificationDocId': customer.username, 'customer.phone': customer.phone, 'billing.street1': customer.address, 'billing.country': customer.country, 'billing.postcode': customer.postCode, 'shipping.street1': customer.address, 'shipping.country': customer.country, 'risk.parameters[SHOPPER_MID]': mid_risk, 'customParameters[SHOPPER_MID]': mid, 'customParameters[SHOPPER_TID]': tid, 'customParameters[SHOPPER_ECI]': '0103910', 'customParameters[SHOPPER_PSERV]': '17913101', 'customParameters[SHOPPER_VAL_BASE0]': 1, 'customParameters[SHOPPER_VAL_BASEIMP]': (valueNoTax - 1).toFixed(2), 'customParameters[SHOPPER_VAL_IVA]': valueTax.toFixed(2), 'customParameters[SHOPPER_VERSIONDF]': '2', 'testMode': 'EXTERNAL' }, cartItems);
+        const query = querystring_1.default.stringify(queryObject);
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}?${query}`;
         const { data } = yield axios_1.default.post(url, {}, {
             headers: {
@@ -168,7 +169,6 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
             },
             httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
         });
-        console.log(data);
         let transactionState = 'RECHAZADO';
         const { card, result, resultDetails, cart, customer, customParameters } = data;
         if (!resultDetails.ExtendedDescription.includes("Transaccion rechazada")) {
@@ -187,7 +187,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     buttonResponse: result.code,
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount),
                     jsonResponse: JSON.stringify(data)
                 },
                 update: {
@@ -203,7 +203,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     buttonResponse: result.code,
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount),
                     jsonResponse: JSON.stringify(data)
                 },
                 where: { trxId: data.id }
@@ -254,7 +254,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     buttonResponse: result.code,
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount),
                     jsonResponse: JSON.stringify(data)
                 },
                 update: {
@@ -270,7 +270,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                     buttonResponse: result.code,
                     amount: parseFloat(data.amount),
                     interest: parseFloat(customParameters.SHOPPER_VAL_IVA),
-                    totalAmount: parseFloat(data.amount) + parseFloat(customParameters.SHOPPER_VAL_IVA),
+                    totalAmount: parseFloat(data.amount),
                     jsonResponse: JSON.stringify(data)
                 },
                 where: { trxId: data.id }
