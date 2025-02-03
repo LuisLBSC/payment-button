@@ -4,12 +4,30 @@ import { Request, Response } from "express";
 const prisma = new PrismaClient();
 export const getAllTransactions = async(req: Request, res: Response) => {
     try {
-        const params = await prisma.transaction.findMany({include: {acquirer: true }});
+        const {
+            id,
+            lot,
+            state
+        } = req.query;
+        const dateStart = req.query.dateStart as string;
+        const dateEnd = req.query.dateEnd as string;
+        const filters: any = {};
+        
+        if (id) filters.id = parseInt(id as string, 10);
+        if (lot) filters.lot = { contains: lot, mode: 'insensitive' };
+        if (state) filters.state = { contains: state, mode: 'insensitive' };
+        if(dateStart || dateEnd){
+            filters.executionDate = {};
+            if(dateStart) filters.executionDate.gte = new Date(dateStart);
+            if(dateEnd) filters.executionDate.lte = new Date(dateEnd);
+        }
+        
+        const transaction = await prisma.transaction.findMany({include: {acquirer: true }, where: filters});
         res.json({
             msg: 'ok',
             error: false,
-            records: params.length,
-            data: params
+            records: transaction.length,
+            data: transaction
         });
     } catch (error) {
         console.log(error);

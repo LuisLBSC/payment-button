@@ -7,7 +7,30 @@ const prisma = new PrismaClient();
 export const getAllPaymentsByUser = async(req: Request, res: Response) => {
     try {
         const {id} = req.body;
-        const payments = await prisma.payment.findMany({where: {customerId: id}, include: { debt: true, transaction: true  }});
+        const {
+            lot,
+            state,
+            type
+        } = req.query;
+        const dateStart = req.query.dateStart as string;
+        const dateEnd = req.query.dateEnd as string;
+        const filters: any = {};
+        
+        if (id) filters.customerId = parseInt(id as string, 10);
+
+        if(dateStart || dateEnd){
+            filters.createdAt = {};
+            if(dateStart) filters.createdAt.gte = new Date(dateStart);
+            if(dateEnd) filters.createdAt.lte = new Date(dateEnd);
+        }
+        if (lot || state || type) {
+            filters.transaction = {};
+            if (lot) filters.transaction.lot = { contains: lot, mode: 'insensitive' };
+            if (state) filters.transaction.state = { contains: state, mode: 'insensitive' };
+            if (type) filters.transaction.type = { contains: type, mode: 'insensitive' };
+        }
+
+        const payments = await prisma.payment.findMany({where: filters, include: { debt: true, transaction: true  }});
         res.json({
             msg: 'ok',
             error: false,
