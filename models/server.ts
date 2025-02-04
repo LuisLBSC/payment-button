@@ -9,6 +9,7 @@ import paymentRoutes from '../routes/payment';
 import entitiesRoutes from '../routes/entity';
 import transactionsRoutes from '../routes/transaction';
 import paymentButtonRoutes from '../routes/paymentButton';
+import entityWithRolesRoutes from '../routes/entityWithRoles';
 import cors from 'cors';
 
 class Server{
@@ -25,7 +26,8 @@ class Server{
     payment: '/api/payment',
     entities: '/api/entity',
     transactions: '/api/transaction',
-    paymentButton: '/api/paymentButton'
+    paymentButton: '/api/paymentButton',
+    entityWithRolesRoutes: '/api/entityWithRoles'
 }
 
   constructor(){
@@ -58,6 +60,7 @@ class Server{
       this.app.use(this.apiPaths.entities, entitiesRoutes);
       this.app.use(this.apiPaths.transactions, transactionsRoutes);
       this.app.use(this.apiPaths.paymentButton, paymentButtonRoutes);
+      this.app.use(this.apiPaths.entityWithRolesRoutes, entityWithRolesRoutes);
   }
   
   listen(){

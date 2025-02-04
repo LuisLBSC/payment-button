@@ -56,6 +56,7 @@ model RoleEntity {
   entityId   Int
   entity     Entity   @relation(fields: [entityId], references: [id])
   assignedAt DateTime @default(now())
+  @@unique([roleId, entityId])
 }
 
 model ProfileRole {

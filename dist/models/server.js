@@ -14,6 +14,7 @@ const payment_1 = __importDefault(require("../routes/payment"));
 const entity_1 = __importDefault(require("../routes/entity"));
 const transaction_1 = __importDefault(require("../routes/transaction"));
 const paymentButton_1 = __importDefault(require("../routes/paymentButton"));
+const entityWithRoles_1 = __importDefault(require("../routes/entityWithRoles"));
 const cors_1 = __importDefault(require("cors"));
 class Server {
     constructor() {
@@ -27,7 +28,8 @@ class Server {
             payment: '/api/payment',
             entities: '/api/entity',
             transactions: '/api/transaction',
-            paymentButton: '/api/paymentButton'
+            paymentButton: '/api/paymentButton',
+            entityWithRolesRoutes: '/api/entityWithRoles'
         };
         this.app = (0, express_1.default)();
         this.port = process.env.PORT || '3000';
@@ -56,6 +58,7 @@ class Server {
         this.app.use(this.apiPaths.entities, entity_1.default);
         this.app.use(this.apiPaths.transactions, transaction_1.default);
         this.app.use(this.apiPaths.paymentButton, paymentButton_1.default);
+        this.app.use(this.apiPaths.entityWithRolesRoutes, entityWithRoles_1.default);
     }
     listen() {
         this.app.listen(this.port, () => {
