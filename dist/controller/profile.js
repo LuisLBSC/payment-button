@@ -277,12 +277,14 @@ const deleteProfileById = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber))
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        yield prisma.profile.update({
+        yield prisma.profileRole.deleteMany({
+            where: {
+                profileId: idNumber
+            }
+        });
+        yield prisma.profile.delete({
             where: {
                 id: idNumber
-            },
-            data: {
-                active: 0
             }
         });
         res.status(200).json({

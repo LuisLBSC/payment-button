@@ -292,12 +292,15 @@ export const deleteProfileById = async (req: Request, res: Response) => {
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
 
-        await prisma.profile.update({
+        await prisma.profileRole.deleteMany({
+            where: {
+                profileId: idNumber
+            }
+        });
+        
+        await prisma.profile.delete({
             where: {
                 id: idNumber
-            },
-            data: {
-                active: 0
             }
         });
 
