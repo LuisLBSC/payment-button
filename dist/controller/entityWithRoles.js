@@ -67,17 +67,12 @@ const saveEntitiesWithRoles = (req, res) => __awaiter(void 0, void 0, void 0, fu
             const rolesWithInfo = [];
             for (const roleData of roles) {
                 const { name: roleName, description: roleDescription } = roleData;
-                const role = yield prisma.role.upsert({
-                    where: { name: roleName },
-                    update: {
-                        description: roleDescription,
-                        active: 1,
-                    },
-                    create: {
+                const role = yield prisma.role.create({
+                    data: {
                         name: roleName,
                         description: roleDescription,
                         active: 1,
-                    },
+                    }
                 });
                 yield prisma.roleEntity.upsert({
                     where: {

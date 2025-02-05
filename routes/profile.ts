@@ -20,10 +20,6 @@ router.post('/',
     validateJWT,
     saveProfile);
 router.put('/:id', 
-    [
-        check('name', 'Name is required').not().isEmpty(),
-        validateFields
-    ],
     validateJWT,
     updateProfileById);
 router.delete('/:id', 

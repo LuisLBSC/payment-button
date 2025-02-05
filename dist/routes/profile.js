@@ -12,10 +12,7 @@ router.post('/', [
     (0, express_validator_1.check)('name', 'Name is required').not().isEmpty(),
     validate_fields_1.validateFields
 ], validate_jwt_1.validateJWT, profile_1.saveProfile);
-router.put('/:id', [
-    (0, express_validator_1.check)('name', 'Name is required').not().isEmpty(),
-    validate_fields_1.validateFields
-], validate_jwt_1.validateJWT, profile_1.updateProfileById);
+router.put('/:id', validate_jwt_1.validateJWT, profile_1.updateProfileById);
 router.delete('/:id', validate_jwt_1.validateJWT, profile_1.deleteProfileById);
 exports.default = router;
 //# sourceMappingURL=profile.js.map

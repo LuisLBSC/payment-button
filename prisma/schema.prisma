@@ -42,7 +42,7 @@ model Profile {
 
 model Role {
   id          Int           @id @default(autoincrement())
-  name        String        @unique
+  name        String        
   description String?
   active      Int?          @default(1)
   profiles    ProfileRole[]
