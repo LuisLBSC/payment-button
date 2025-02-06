@@ -57,6 +57,13 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         const entityMap = new Map();
         const userProfile = existingUser === null || existingUser === void 0 ? void 0 : existingUser.profile;
+        if (!userProfile) {
+            return res.status(404).json({
+                msg: 'User without assigned profile',
+                error: true,
+                data: []
+            });
+        }
         userProfile.roles.forEach((profileRole) => {
             profileRole.role.entities.forEach((roleEntity) => {
                 const entityId = roleEntity.entity.id;

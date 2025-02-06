@@ -48,6 +48,15 @@ export const login = async (req: Request, res: Response) => {
 
         const entityMap = new Map();
         const userProfile = existingUser?.profile;
+
+        if (!userProfile) {
+            return res.status(404).json({
+                msg: 'User without assigned profile',
+                error: true,
+                data: []
+            });
+        }
+
         userProfile.roles.forEach((profileRole) => {
             profileRole.role.entities.forEach((roleEntity) => {
                 const entityId = roleEntity.entity.id;
