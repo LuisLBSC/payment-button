@@ -4,48 +4,123 @@ import { generateJWT } from "../helpers/generate-jwt";
 import { encryptPassword, validatePassword } from "../helpers/password";
 import { sendEmail } from "./mail";
 import jwt from "jsonwebtoken";
+import { profile } from "console";
+import { setDefaultAutoSelectFamily } from "net";
 
 const prisma = new PrismaClient();
-export const login = async(req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) => {
     try {
-        const {username, password} = req.body;
+        const { username, password } = req.body;
         let generatedToken;
         let validPassword = false;
         if (!username || !password) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        
-        const existingUser = await prisma.user.findFirst({where: {username: username, active: 1}});
-        
-        if (!existingUser){
-            return res.status(404).json({ 
-                msg: 'User not found', 
-                error: true, 
-                data: [] 
+
+        const existingUser = await prisma.user.findFirst({
+            where: { username: username, active: 1 },
+            include: {
+                profile: {
+                    include: {
+                        roles: {
+                            include: {
+                                role: {
+                                    include: {
+                                        entities: {
+                                            include: {
+                                                entity: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!existingUser) {
+            return res.status(404).json({
+                msg: 'User not found',
+                error: true,
+                data: []
             });
         }
-        validPassword = await validatePassword(password, existingUser.password);
-        if(!validPassword){
-            const defaultEmails = await prisma.param.findUnique({where: { key: 'DEFAULT_EMAILS' }});
-            //const defaultTextEmail = await prisma.param.findUnique({where: { key: 'DEFAULT_TEXT_EMAIL' }});
-            const defaultHtmlEmail = await prisma.param.findUnique({where: { key: 'DEFAULT_HTML_EMAIL' }});
-            if(defaultEmails && defaultHtmlEmail)
-                sendEmail(process.env.EMAIL || '', existingUser.email, '', defaultHtmlEmail.value, 'Login Failed!','Info');
-            else{
-                return res.status(404).json({msg: 'Invalid Password and missing required parameters for email configuration', error: false, data:[]});
+
+        const entityMap = new Map();
+        const userProfile = existingUser?.profile;
+        userProfile.roles.forEach((profileRole) => {
+            profileRole.role.entities.forEach((roleEntity) => {
+                const entityId = roleEntity.entity.id;
+
+                if (!entityMap.has(entityId)) {
+                    entityMap.set(entityId, {
+                        id: roleEntity.entity.id,
+                        name: roleEntity.entity.name,
+                        description: roleEntity.entity.description,
+                        active: roleEntity.entity.active,
+                        roles: []
+                    });
+                }
+
+                entityMap.get(entityId).roles.push({
+                    id: profileRole.role.id,
+                    name: profileRole.role.name,
+                    description: profileRole.role.description,
+                    active: profileRole.role.active
+                });
+            });
+        });
+
+        const userWithEntities = {
+            id: existingUser.id,
+            username: existingUser.username,
+            email: existingUser.email,
+            active: existingUser.active,
+            createdAt: existingUser.updatedAt,
+            updatedAt: existingUser.updatedAt,
+            verified: existingUser.verified,
+            verifiedToken: existingUser.verifiedToken,
+            lastname: existingUser.lastname,
+            name: existingUser.name,
+            address: existingUser.address,
+            country: existingUser.country,
+            middlename: existingUser.middlename,
+            phone: existingUser.phone,
+            postCode: existingUser.postCode,
+            profile: {
+                id: userProfile.id,
+                name: userProfile.name,
+                description: userProfile.description,
+                active: userProfile.active,
+                entities: Array.from(entityMap.values())
             }
-            
-            return res.status(404).json({msg: 'Invalid Password', error: false, data:[]});
         }
-            
-        
-        generatedToken = await generateJWT(existingUser.id);
+
+
+        validPassword = await validatePassword(password, existingUser.password);
+        if (!validPassword) {
+            const defaultEmails = await prisma.param.findUnique({ where: { key: 'DEFAULT_EMAILS' } });
+            //const defaultTextEmail = await prisma.param.findUnique({where: { key: 'DEFAULT_TEXT_EMAIL' }});
+            const defaultHtmlEmail = await prisma.param.findUnique({ where: { key: 'DEFAULT_HTML_EMAIL' } });
+            if (defaultEmails && defaultHtmlEmail)
+                sendEmail(process.env.EMAIL || '', existingUser.email, '', defaultHtmlEmail.value, 'Login Failed!', 'Info');
+            else {
+                return res.status(404).json({ msg: 'Invalid Password and missing required parameters for email configuration', error: false, data: [] });
+            }
+
+            return res.status(404).json({ msg: 'Invalid Password', error: false, data: [] });
+        }
+
+
+        generatedToken = await generateJWT(userWithEntities.id);
         return res.json({
             msg: 'ok',
             error: false,
             records: 1,
-            data: existingUser,
+            data: userWithEntities,
             token: generatedToken || ''
         });
-        
+
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -57,19 +132,19 @@ export const login = async(req: Request, res: Response) => {
     }
 }
 
-export const resetPassword = async(req: Request, res: Response) => {
+export const resetPassword = async (req: Request, res: Response) => {
     try {
-        const {id, password, confirmPassword} = req.body;
+        const { id, password, confirmPassword } = req.body;
         if (!(id || password || confirmPassword)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
 
-        const existingUser = await prisma.user.findFirst({where: {id, active: 1}});
+        const existingUser = await prisma.user.findFirst({ where: { id, active: 1 } });
 
-        if (!existingUser){
-            return res.status(404).json({ msg: 'User not found', error: true, data: [] });   
+        if (!existingUser) {
+            return res.status(404).json({ msg: 'User not found', error: true, data: [] });
         }
 
         const matchPasswords = await validatePassword(password, existingUser.password);
-        if(matchPasswords){
+        if (matchPasswords) {
             return res.status(400).json({ msg: 'New password cannot be the same as the old one', error: true, data: [] });
         }
 
@@ -81,7 +156,7 @@ export const resetPassword = async(req: Request, res: Response) => {
                 password: encryptedPassword
             }
         });
-        
+
         res.json({
             msg: `Username: ${updatedUser.username} -> Password changed successfully`,
             error: false
@@ -97,38 +172,38 @@ export const resetPassword = async(req: Request, res: Response) => {
     }
 }
 
-export const signUp = async(req: Request, res: Response) => {
+export const signUp = async (req: Request, res: Response) => {
     try {
         console.log(req.body);
         const {
-            username, 
-            password, 
-            email, 
-            name, 
+            username,
+            password,
+            email,
+            name,
             middlename,
             lastname,
             phone,
             address,
             country,
-            postCode, 
+            postCode,
             profileId
         } = req.body;
         if (!username || !password) return res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        
-        const existingUser = await prisma.user.findFirst({where: {username: username, active: 1}});
+
+        const existingUser = await prisma.user.findFirst({ where: { username: username, active: 1 } });
 
         if (existingUser) return res.status(400).json({ msg: 'User already exists', error: true, data: [] });
 
         const encryptedPassword = await encryptPassword(password);
-        
+
         const verifiedToken = jwt.sign(email, `${process.env.SECRETKEY}`, {});
 
         const newUser = await prisma.user.create({
             data: {
-                username, 
-                password: encryptedPassword, 
-                email, 
-                name, 
+                username,
+                password: encryptedPassword,
+                email,
+                name,
                 middlename,
                 lastname,
                 phone,
@@ -141,15 +216,15 @@ export const signUp = async(req: Request, res: Response) => {
             }
         });
 
-        const htmlEmail = await prisma.param.findUnique({where: { key: 'SIGNUP_HTML_EMAIL' }}) || '';
+        const htmlEmail = await prisma.param.findUnique({ where: { key: 'SIGNUP_HTML_EMAIL' } }) || '';
         const htmlEmailReplaced = htmlEmail.value.replace(
             /\${process\.env\.BASE_URL}/g,
             process.env.BASE_URL
-          ).replace(
+        ).replace(
             /\${verifiedToken}/g,
             verifiedToken
-          );
-        if(newUser.email && htmlEmailReplaced)
+        );
+        if (newUser.email && htmlEmailReplaced)
             sendEmail(process.env.EMAIL || '', newUser.email, '', htmlEmailReplaced, 'Verificar usuario', 'Info');
 
         return res.json({
@@ -169,19 +244,19 @@ export const signUp = async(req: Request, res: Response) => {
     }
 }
 
-export const verifyAccount = async(req: Request, res: Response) => {
+export const verifyAccount = async (req: Request, res: Response) => {
     try {
-        const {verifiedToken} = req.params;
+        const { verifiedToken } = req.params;
         if (!verifiedToken) return res.status(400).json({ msg: 'An error occurred while verifying account', error: true, records: 0, data: [] });
 
         const validateToken = jwt.verify(verifiedToken, process.env.SECRETKEY || '');
         if (!validateToken) return res.status(400).json({ msg: 'Invalid token', error: true, records: 0, data: [] });
 
-        const registeredUser = await prisma.user.findUnique({where: {email: validateToken}});
+        const registeredUser = await prisma.user.findUnique({ where: { email: validateToken } });
 
-        if(!registeredUser) return res.status(404).json({ msg: 'User not found', error: true, data: [] });
+        if (!registeredUser) return res.status(404).json({ msg: 'User not found', error: true, data: [] });
 
-        const {id} = registeredUser;
+        const { id } = registeredUser;
         const verifiedUser = await prisma.user.update({
             where: { id },
             data: {
@@ -208,30 +283,30 @@ export const verifyAccount = async(req: Request, res: Response) => {
 }
 
 
-export const resendVerificationEmail = async(req: Request, res: Response) => {
+export const resendVerificationEmail = async (req: Request, res: Response) => {
     try {
-        const {email} = req.body;
-        const registeredUser = await prisma.user.findUnique({where: {email}});
+        const { email } = req.body;
+        const registeredUser = await prisma.user.findUnique({ where: { email } });
 
-        if(!registeredUser) return res.status(404).json({ msg: 'User not found', error: true, data: [] });
+        if (!registeredUser) return res.status(404).json({ msg: 'User not found', error: true, data: [] });
 
         const verifiedToken = jwt.sign(email, `${process.env.SECRETKEY}`, {});
-        const {id} = registeredUser;
+        const { id } = registeredUser;
         const verifiedUser = await prisma.user.update({
             where: { id },
             data: {
                 verifiedToken
             }
         });
-        const htmlEmail = await prisma.param.findUnique({where: { key: 'SIGNUP_HTML_EMAIL' }}) || '';
+        const htmlEmail = await prisma.param.findUnique({ where: { key: 'SIGNUP_HTML_EMAIL' } }) || '';
         const htmlEmailReplaced = htmlEmail.value.replace(
             /\${process\.env\.BASE_URL}/g,
             process.env.BASE_URL
-          ).replace(
+        ).replace(
             /\${verifiedToken}/g,
             verifiedToken
-          );
-        if(email && htmlEmailReplaced)
+        );
+        if (email && htmlEmailReplaced)
             sendEmail(process.env.EMAIL || '', email, '', htmlEmailReplaced, 'Verificar usuario', 'Info');
 
         return res.json({

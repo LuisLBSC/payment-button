@@ -26,7 +26,28 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         let validPassword = false;
         if (!username || !password)
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        const existingUser = yield prisma.user.findFirst({ where: { username: username, active: 1 } });
+        const existingUser = yield prisma.user.findFirst({
+            where: { username: username, active: 1 },
+            include: {
+                profile: {
+                    include: {
+                        roles: {
+                            include: {
+                                role: {
+                                    include: {
+                                        entities: {
+                                            include: {
+                                                entity: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
         if (!existingUser) {
             return res.status(404).json({
                 msg: 'User not found',
@@ -34,6 +55,52 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 data: []
             });
         }
+        const entityMap = new Map();
+        const userProfile = existingUser === null || existingUser === void 0 ? void 0 : existingUser.profile;
+        userProfile.roles.forEach((profileRole) => {
+            profileRole.role.entities.forEach((roleEntity) => {
+                const entityId = roleEntity.entity.id;
+                if (!entityMap.has(entityId)) {
+                    entityMap.set(entityId, {
+                        id: roleEntity.entity.id,
+                        name: roleEntity.entity.name,
+                        description: roleEntity.entity.description,
+                        active: roleEntity.entity.active,
+                        roles: []
+                    });
+                }
+                entityMap.get(entityId).roles.push({
+                    id: profileRole.role.id,
+                    name: profileRole.role.name,
+                    description: profileRole.role.description,
+                    active: profileRole.role.active
+                });
+            });
+        });
+        const userWithEntities = {
+            id: existingUser.id,
+            username: existingUser.username,
+            email: existingUser.email,
+            active: existingUser.active,
+            createdAt: existingUser.updatedAt,
+            updatedAt: existingUser.updatedAt,
+            verified: existingUser.verified,
+            verifiedToken: existingUser.verifiedToken,
+            lastname: existingUser.lastname,
+            name: existingUser.name,
+            address: existingUser.address,
+            country: existingUser.country,
+            middlename: existingUser.middlename,
+            phone: existingUser.phone,
+            postCode: existingUser.postCode,
+            profile: {
+                id: userProfile.id,
+                name: userProfile.name,
+                description: userProfile.description,
+                active: userProfile.active,
+                entities: Array.from(entityMap.values())
+            }
+        };
         validPassword = yield (0, password_1.validatePassword)(password, existingUser.password);
         if (!validPassword) {
             const defaultEmails = yield prisma.param.findUnique({ where: { key: 'DEFAULT_EMAILS' } });
@@ -46,12 +113,12 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             }
             return res.status(404).json({ msg: 'Invalid Password', error: false, data: [] });
         }
-        generatedToken = yield (0, generate_jwt_1.generateJWT)(existingUser.id);
+        generatedToken = yield (0, generate_jwt_1.generateJWT)(userWithEntities.id);
         return res.json({
             msg: 'ok',
             error: false,
             records: 1,
-            data: existingUser,
+            data: userWithEntities,
             token: generatedToken || ''
         });
     }
