@@ -69,14 +69,24 @@ const transporter = () => __awaiter(void 0, void 0, void 0, function* () {
     //const accessToken = await getAccessToken();
     return nodemailer.createTransport({
         /* GMAIL */
-        service: "Gmail",
-        host: "smtp.gmail.com",
-        port: 465,
+        // service: "Gmail",
+        // host: "smtp.gmail.com",
+        // port: 465,
+        // secure: false,
+        // auth: {
+        //     user: process.env.EMAIL,
+        //     pass: process.env.PASSWORD,
+        // },
+        host: process.env.ZIMBRA_HOST,
+        port: process.env.ZIMBRA_PORT,
         secure: false,
         auth: {
-            user: process.env.EMAIL,
-            pass: process.env.PASSWORD,
+            user: process.env.ZIMBRA_USER,
+            pass: process.env.ZIMBRA_PASSWORD
         },
+        tls: {
+            rejectUnauthorized: true
+        }
     });
 });
 exports.transporter = transporter;

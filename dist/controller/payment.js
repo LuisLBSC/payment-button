@@ -14,12 +14,24 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getAllPaymentsByUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id, lot, state, type } = req.query;
+        const { userId, lot, state, type } = req.query;
         const dateStart = req.query.dateStart;
         const dateEnd = req.query.dateEnd;
         const filters = {};
-        if (id)
-            filters.customerId = parseInt(id, 10);
+        if (!userId) {
+            return res.status(400).json({ msg: "User ID is required", error: true });
+        }
+        const user = yield prisma.user.findUnique({
+            where: { id: parseInt(userId, 10) },
+            include: { profile: true }
+        });
+        if (!user) {
+            return res.status(404).json({ msg: "User not found", error: true });
+        }
+        const isAdmin = user.profile.name === "ADMIN";
+        if (!isAdmin) {
+            filters.customerId = user.id;
+        }
         if (dateStart || dateEnd) {
             filters.createdAt = {};
             if (dateStart)

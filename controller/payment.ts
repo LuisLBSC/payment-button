@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export const getAllPaymentsByUser = async(req: Request, res: Response) => {
     try {
         const {
-            id,
+            userId,
             lot,
             state,
             type
@@ -16,7 +16,24 @@ export const getAllPaymentsByUser = async(req: Request, res: Response) => {
         const dateEnd = req.query.dateEnd as string;
         const filters: any = {};
         
-        if (id) filters.customerId = parseInt(id as string, 10);
+        if (!userId) {
+            return res.status(400).json({ msg: "User ID is required", error: true });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: {id: parseInt(userId as string, 10)},
+            include: {profile: true}
+        });
+
+        if(!user){
+            return res.status(404).json({msg: "User not found", error: true});
+        }
+
+        const isAdmin = user.profile.name === "ADMIN";
+
+        if(!isAdmin){
+            filters.customerId = user.id;
+        }
 
         if(dateStart || dateEnd){
             filters.createdAt = {};

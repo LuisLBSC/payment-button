@@ -24,11 +24,11 @@ model User {
   address       String?
   country       String        @default("EC")
   middlename    String
-  phone         String?       @db.VarChar(10)
+  phone         String?       @db.VarChar(20)
   postCode      String?
   payment       Payment[]
-  profile       Profile       @relation(fields: [profileId], references: [id])
   transaction   Transaction[]
+  profile       Profile       @relation(fields: [profileId], references: [id])
 }
 
 model Profile {
@@ -42,7 +42,7 @@ model Profile {
 
 model Role {
   id          Int           @id @default(autoincrement())
-  name        String        
+  name        String
   description String?
   active      Int?          @default(1)
   profiles    ProfileRole[]
@@ -52,10 +52,11 @@ model Role {
 model RoleEntity {
   id         Int      @id @default(autoincrement())
   roleId     Int
-  role       Role     @relation(fields: [roleId], references: [id])
   entityId   Int
-  entity     Entity   @relation(fields: [entityId], references: [id])
   assignedAt DateTime @default(now())
+  entity     Entity   @relation(fields: [entityId], references: [id])
+  role       Role     @relation(fields: [roleId], references: [id])
+
   @@unique([roleId, entityId])
 }
 
@@ -98,49 +99,49 @@ model Debt {
 }
 
 model Payment {
-  id                 Int          @id @default(autoincrement())
+  id                 Int         @id @default(autoincrement())
   customerId         Int
-  customer           User         @relation(fields: [customerId], references: [id])
-  cashier            Int          @default(30)
+  cashier            Int         @default(30)
+  createdAt          DateTime    @default(now())
   debtId             Int
-  debt               Debt         @relation(fields: [debtId], references: [id])
   ipSession          String?
   macAddressUser     String?
   observation        String?
   receiptNumber      String
   bank_id            Int
-  cardNumber         String       @db.VarChar
-  cardExpirationDate String       @db.VarChar
-  cardAuthorization  String       @db.VarChar
-  cardVoucherNumber  String       @db.VarChar
-  cardHolderName     String       @db.VarChar
-  amount             Float
+  cardAuthorization  String      @db.VarChar
+  cardExpirationDate String      @db.VarChar
+  cardHolderName     String      @db.VarChar
+  cardNumber         String      @db.VarChar
+  cardVoucherNumber  String      @db.VarChar
   message            String
-  createdAt          DateTime     @default(now())
   transactionId      Int
-  transaction        Transaction? @relation(fields: [transactionId], references: [id])
+  amount             Float
+  customer           User        @relation(fields: [customerId], references: [id])
+  debt               Debt        @relation(fields: [debtId], references: [id])
+  transaction        Transaction @relation(fields: [transactionId], references: [id])
 }
 
 model Transaction {
-  id             Int       @id @default(autoincrement())
-  type           String?
   state          String
-  order          Int       @default(autoincrement())
-  executionDate  DateTime  @default(now())
-  trxId          String    @unique
-  bankResponse   String?
-  responseText   String?
-  lot            String?
-  reference      String?
   acquirerId     Int
-  acquirer       User      @relation(fields: [acquirerId], references: [id])
-  authorization  Int
-  buttonResponse String
   amount         Float
+  authorization  Int
+  bankResponse   String?
+  buttonResponse String
+  executionDate  DateTime  @default(now())
   interest       Float?    @default(0)
+  lot            String?
+  order          Int       @default(autoincrement())
+  reference      String?
+  responseText   String?
   totalAmount    Float
+  trxId          String    @unique
+  type           String?
+  id             Int       @id @default(autoincrement())
   jsonResponse   String
   payment        Payment[]
+  acquirer       User      @relation(fields: [acquirerId], references: [id])
 }
 
 model Entity {
