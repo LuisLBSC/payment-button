@@ -1,7 +1,8 @@
 import * as nodemailer from 'nodemailer';
 import { google } from 'googleapis';
+import { PrismaClient } from "@prisma/client";
 
-
+const prisma = new PrismaClient();
 const OAuth2 = google.auth.OAuth2;
 const oauth2Client = new OAuth2(
     process.env.CLIENT_ID, // Reemplaza con tu Client ID
@@ -25,22 +26,39 @@ async function getAccessToken() {
 
 export const transporter = async () => {
     //const accessToken = await getAccessToken();
+    const requestParams = await prisma.param.findMany({
+        where: {
+            key: {
+                startsWith: 'zimbra_',
+            },
+        },
+    });
+
+    const paramsMap: { [key: string]: string | undefined } = requestParams.reduce((acc, param) => {
+        const key = param.key.replace('zimbra_', '');
+        acc[key] = param.value;
+        return acc;
+    }, {} as { [key: string]: string | undefined });
+
+    const { host, port, user, password } = paramsMap;
+    const missingParams: string[] = [];
+
+    if (!host) missingParams.push('host');
+    if (!port) missingParams.push('port');
+    if (!user) missingParams.push('user');
+    if (!password) missingParams.push('password');
+
+    if (missingParams.length > 0) {
+        throw new Error(`Missing required configuration parameters: ${missingParams.join(', ')}`);
+    }
+
     return nodemailer.createTransport({
-        /* GMAIL */
-        // service: "Gmail",
-        // host: "smtp.gmail.com",
-        // port: 465,
-        // secure: false,
-        // auth: {
-        //     user: process.env.EMAIL,
-        //     pass: process.env.PASSWORD,
-        // },
-        host: process.env.ZIMBRA_HOST,
-        port: process.env.ZIMBRA_PORT,
-        secure: false,
+        host: host,
+        port: port,
+        secure: true,
         auth: {
-            user: process.env.ZIMBRA_USER,
-            pass: process.env.ZIMBRA_PASSWORD
+            user: user,
+            pass: password
         },
         tls: {
             rejectUnauthorized: true

@@ -45,6 +45,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.transporter = void 0;
 const nodemailer = __importStar(require("nodemailer"));
 const googleapis_1 = require("googleapis");
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
 const OAuth2 = googleapis_1.google.auth.OAuth2;
 const oauth2Client = new OAuth2(process.env.CLIENT_ID, // Reemplaza con tu Client ID
 process.env.CLIENT_SECRET, // Reemplaza con tu Client Secret
@@ -67,22 +69,38 @@ function getAccessToken() {
 }
 const transporter = () => __awaiter(void 0, void 0, void 0, function* () {
     //const accessToken = await getAccessToken();
+    const requestParams = yield prisma.param.findMany({
+        where: {
+            key: {
+                startsWith: 'zimbra_',
+            },
+        },
+    });
+    const paramsMap = requestParams.reduce((acc, param) => {
+        const key = param.key.replace('zimbra_', '');
+        acc[key] = param.value;
+        return acc;
+    }, {});
+    const { host, port, user, password } = paramsMap;
+    const missingParams = [];
+    if (!host)
+        missingParams.push('host');
+    if (!port)
+        missingParams.push('port');
+    if (!user)
+        missingParams.push('user');
+    if (!password)
+        missingParams.push('password');
+    if (missingParams.length > 0) {
+        throw new Error(`Missing required configuration parameters: ${missingParams.join(', ')}`);
+    }
     return nodemailer.createTransport({
-        /* GMAIL */
-        // service: "Gmail",
-        // host: "smtp.gmail.com",
-        // port: 465,
-        // secure: false,
-        // auth: {
-        //     user: process.env.EMAIL,
-        //     pass: process.env.PASSWORD,
-        // },
-        host: process.env.ZIMBRA_HOST,
-        port: process.env.ZIMBRA_PORT,
-        secure: false,
+        host: host,
+        port: port,
+        secure: true,
         auth: {
-            user: process.env.ZIMBRA_USER,
-            pass: process.env.ZIMBRA_PASSWORD
+            user: user,
+            pass: password
         },
         tls: {
             rejectUnauthorized: true
