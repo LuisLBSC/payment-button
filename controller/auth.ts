@@ -50,7 +50,7 @@ export const login = async (req: Request, res: Response) => {
         const userProfile = existingUser?.profile;
 
         if (!userProfile) {
-            return res.status(404).json({
+            return res.status(400).json({
                 msg: 'User without assigned profile',
                 error: true,
                 data: []
@@ -58,7 +58,7 @@ export const login = async (req: Request, res: Response) => {
         }
 
         if (!existingUser.verified) {
-            return res.status(404).json({
+            return res.status(403).json({
                 msg: 'User not verified',
                 error: true,
                 data: []
@@ -123,10 +123,10 @@ export const login = async (req: Request, res: Response) => {
             if (fromEmail && defaultEmails && logintHtmlEmail && titleEmail)
                 sendEmail(fromEmail.value || '', existingUser.email, '', logintHtmlEmail.value, titleEmail.value, 'Info');
             else {
-                return res.status(404).json({ msg: 'Invalid Password and missing required parameters for email configuration', error: false, data: [] });
+                return res.status(400).json({ msg: 'Invalid Password and missing required parameters for email configuration', error: false, data: [] });
             }
 
-            return res.status(404).json({ msg: 'Invalid Password', error: false, data: [] });
+            return res.status(401).json({ msg: 'Invalid Password', error: false, data: [] });
         }
 
 
@@ -210,7 +210,7 @@ export const signUp = async (req: Request, res: Response) => {
 
         const existingUser = await prisma.user.findFirst({ where: { username: username, active: 1 } });
 
-        if (existingUser) return res.status(400).json({ msg: 'User already exists', error: true, data: [] });
+        if (existingUser) return res.status(409).json({ msg: 'User already exists', error: true, data: [] });
 
         const encryptedPassword = await encryptPassword(password);
 

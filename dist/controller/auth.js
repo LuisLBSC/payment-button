@@ -58,14 +58,14 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const entityMap = new Map();
         const userProfile = existingUser === null || existingUser === void 0 ? void 0 : existingUser.profile;
         if (!userProfile) {
-            return res.status(404).json({
+            return res.status(400).json({
                 msg: 'User without assigned profile',
                 error: true,
                 data: []
             });
         }
         if (!existingUser.verified) {
-            return res.status(404).json({
+            return res.status(403).json({
                 msg: 'User not verified',
                 error: true,
                 data: []
@@ -124,9 +124,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             if (fromEmail && defaultEmails && logintHtmlEmail && titleEmail)
                 (0, mail_1.sendEmail)(fromEmail.value || '', existingUser.email, '', logintHtmlEmail.value, titleEmail.value, 'Info');
             else {
-                return res.status(404).json({ msg: 'Invalid Password and missing required parameters for email configuration', error: false, data: [] });
+                return res.status(400).json({ msg: 'Invalid Password and missing required parameters for email configuration', error: false, data: [] });
             }
-            return res.status(404).json({ msg: 'Invalid Password', error: false, data: [] });
+            return res.status(401).json({ msg: 'Invalid Password', error: false, data: [] });
         }
         generatedToken = yield (0, generate_jwt_1.generateJWT)(userWithEntities.id);
         return res.json({
@@ -190,7 +190,7 @@ const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingUser = yield prisma.user.findFirst({ where: { username: username, active: 1 } });
         if (existingUser)
-            return res.status(400).json({ msg: 'User already exists', error: true, data: [] });
+            return res.status(409).json({ msg: 'User already exists', error: true, data: [] });
         const encryptedPassword = yield (0, password_1.encryptPassword)(password);
         const verifiedToken = jsonwebtoken_1.default.sign(email, `${process.env.SECRETKEY}`, {});
         const newUser = yield prisma.user.create({
