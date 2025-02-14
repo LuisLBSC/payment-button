@@ -64,6 +64,13 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 data: []
             });
         }
+        if (!existingUser.verified) {
+            return res.status(404).json({
+                msg: 'User not verified',
+                error: true,
+                data: []
+            });
+        }
         userProfile.roles.forEach((profileRole) => {
             profileRole.role.entities.forEach((roleEntity) => {
                 const entityId = roleEntity.entity.id;
@@ -245,7 +252,7 @@ const verifyAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             }
         });
         res.status(200).json({
-            registeredUser,
+            verifiedUser,
             msg: `User ${verifiedUser.username} verified`,
             error: false,
             records: 1

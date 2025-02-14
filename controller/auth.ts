@@ -57,6 +57,14 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
+        if (!existingUser.verified) {
+            return res.status(404).json({
+                msg: 'User not verified',
+                error: true,
+                data: []
+            });
+        }
+
         userProfile.roles.forEach((profileRole) => {
             profileRole.role.entities.forEach((roleEntity) => {
                 const entityId = roleEntity.entity.id;
@@ -277,7 +285,7 @@ export const verifyAccount = async (req: Request, res: Response) => {
         });
 
         res.status(200).json({
-            registeredUser,
+            verifiedUser,
             msg: `User ${verifiedUser.username} verified`,
             error: false,
             records: 1
