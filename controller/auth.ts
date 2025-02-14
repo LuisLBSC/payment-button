@@ -121,7 +121,7 @@ export const login = async (req: Request, res: Response) => {
             //const defaultTextEmail = await prisma.param.findUnique({where: { key: 'DEFAULT_TEXT_EMAIL' }});
             const defaultHtmlEmail = await prisma.param.findUnique({ where: { key: 'DEFAULT_HTML_EMAIL' } });
             if (fromEmail && defaultEmails && defaultHtmlEmail)
-                sendEmail(fromEmail.value || '', existingUser.email, '', defaultHtmlEmail.value, 'Login Failed!', 'Info');
+                sendEmail(fromEmail.value || '', existingUser.email, '', defaultHtmlEmail.value, 'Inicio de sesion fallido', 'Info');
             else {
                 return res.status(404).json({ msg: 'Invalid Password and missing required parameters for email configuration', error: false, data: [] });
             }
