@@ -119,10 +119,10 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!validPassword) {
             const fromEmail = (yield prisma.param.findUnique({ where: { key: 'zimbra_user' } })) || '';
             const defaultEmails = yield prisma.param.findUnique({ where: { key: 'DEFAULT_EMAILS' } });
-            //const defaultTextEmail = await prisma.param.findUnique({where: { key: 'DEFAULT_TEXT_EMAIL' }});
-            const defaultHtmlEmail = yield prisma.param.findUnique({ where: { key: 'DEFAULT_HTML_EMAIL' } });
-            if (fromEmail && defaultEmails && defaultHtmlEmail)
-                (0, mail_1.sendEmail)(fromEmail.value || '', existingUser.email, '', defaultHtmlEmail.value, 'Inicio de sesion fallido', 'Info');
+            const titleEmail = (yield prisma.param.findUnique({ where: { key: 'LOGIN_ERROR_TITLE_EMAIL' } })) || '';
+            const logintHtmlEmail = yield prisma.param.findUnique({ where: { key: 'LOGIN_ERROR_HTML_EMAIL' } });
+            if (fromEmail && defaultEmails && logintHtmlEmail && titleEmail)
+                (0, mail_1.sendEmail)(fromEmail.value || '', existingUser.email, '', logintHtmlEmail.value, titleEmail.value, 'Info');
             else {
                 return res.status(404).json({ msg: 'Invalid Password and missing required parameters for email configuration', error: false, data: [] });
             }
@@ -211,10 +211,11 @@ const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             }
         });
         const fromEmail = (yield prisma.param.findUnique({ where: { key: 'zimbra_user' } })) || '';
+        const titleEmail = (yield prisma.param.findUnique({ where: { key: 'SIGNUP_TITLE_EMAIL' } })) || '';
         const htmlEmail = (yield prisma.param.findUnique({ where: { key: 'SIGNUP_HTML_EMAIL' } })) || '';
         const htmlEmailReplaced = htmlEmail.value.replace(/\${process\.env\.BASE_URL}/g, process.env.BASE_URL).replace(/\${verifiedToken}/g, verifiedToken);
-        if (fromEmail && newUser.email && htmlEmailReplaced)
-            (0, mail_1.sendEmail)(fromEmail.value || '', newUser.email, '', htmlEmailReplaced, 'Verificar usuario', 'Info');
+        if (fromEmail && newUser.email && htmlEmailReplaced && titleEmail)
+            (0, mail_1.sendEmail)(fromEmail.value || '', newUser.email, '', htmlEmailReplaced, titleEmail.value, 'Info');
         return res.json({
             msg: `Username: ${newUser.username} registed`,
             error: false,
@@ -284,9 +285,10 @@ const resendVerificationEmail = (req, res) => __awaiter(void 0, void 0, void 0, 
         });
         const fromEmail = (yield prisma.param.findUnique({ where: { key: 'zimbra_user' } })) || '';
         const htmlEmail = (yield prisma.param.findUnique({ where: { key: 'SIGNUP_HTML_EMAIL' } })) || '';
+        const titleEmail = (yield prisma.param.findUnique({ where: { key: 'SIGNUP_TITLE_EMAIL' } })) || '';
         const htmlEmailReplaced = htmlEmail.value.replace(/\${process\.env\.BASE_URL}/g, process.env.BASE_URL).replace(/\${verifiedToken}/g, verifiedToken);
-        if (fromEmail && email && htmlEmailReplaced)
-            (0, mail_1.sendEmail)(fromEmail.value || '', email, '', htmlEmailReplaced, 'Verificar usuario', 'Info');
+        if (fromEmail && email && htmlEmailReplaced && titleEmail)
+            (0, mail_1.sendEmail)(fromEmail.value || '', email, '', htmlEmailReplaced, titleEmail.value, 'Info');
         return res.json({
             msg: `Verification email sent successfully`,
             error: false
