@@ -15,23 +15,35 @@ const prisma = new client_1.PrismaClient();
 const getAllTransactions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { trxId, lot, state } = req.query;
+        const filters = {};
         const dateStart = req.query.dateStart;
         const dateEnd = req.query.dateEnd;
-        const filters = {};
         if (trxId)
             filters.trxId = { contains: trxId, mode: 'insensitive' };
         if (lot)
             filters.lot = { contains: lot, mode: 'insensitive' };
         if (state)
             filters.state = { contains: state, mode: 'insensitive' };
-        if (dateStart || dateEnd) {
+        if (!dateStart || !dateEnd) {
+            const threeDaysAgo = new Date();
+            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+            filters.executionDate = {
+                gte: threeDaysAgo,
+                lte: new Date()
+            };
+        }
+        else {
             filters.executionDate = {};
             if (dateStart)
                 filters.executionDate.gte = new Date(dateStart);
             if (dateEnd)
                 filters.executionDate.lte = new Date(dateEnd);
         }
-        const transaction = yield prisma.transaction.findMany({ include: { acquirer: true }, where: filters });
+        const transaction = yield prisma.transaction.findMany({
+            include: { acquirer: true },
+            where: filters,
+            orderBy: { executionDate: 'desc' }
+        });
         res.json({
             msg: 'ok',
             error: false,

@@ -9,20 +9,32 @@ export const getAllTransactions = async(req: Request, res: Response) => {
             lot,
             state
         } = req.query;
+
+        const filters: any = {};
         const dateStart = req.query.dateStart as string;
         const dateEnd = req.query.dateEnd as string;
-        const filters: any = {};
         
         if (trxId) filters.trxId = { contains: trxId, mode: 'insensitive' };
         if (lot) filters.lot = { contains: lot, mode: 'insensitive' };
         if (state) filters.state = { contains: state, mode: 'insensitive' };
-        if(dateStart || dateEnd){
+
+        if(!dateStart || !dateEnd){
+            const threeDaysAgo = new Date();
+            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+            filters.executionDate = {
+                gte: threeDaysAgo,
+                lte: new Date()
+            };
+        }else {
             filters.executionDate = {};
-            if(dateStart) filters.executionDate.gte = new Date(dateStart);
-            if(dateEnd) filters.executionDate.lte = new Date(dateEnd);
+            if (dateStart) filters.executionDate.gte = new Date(dateStart as string);
+            if (dateEnd) filters.executionDate.lte = new Date(dateEnd as string);
         }
-        
-        const transaction = await prisma.transaction.findMany({include: {acquirer: true }, where: filters});
+        const transaction = await prisma.transaction.findMany({
+            include: {acquirer: true }, 
+            where: filters,
+            orderBy: { executionDate: 'desc' }
+        });
         res.json({
             msg: 'ok',
             error: false,
