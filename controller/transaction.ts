@@ -44,7 +44,7 @@ export const getAllTransactions = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting transactions',
+            msg: 'Error obteniendo transacciones',
             error
         });
     }

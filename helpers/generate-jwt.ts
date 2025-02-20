@@ -9,7 +9,7 @@ export const generateJWT = (id : number) => {
         }, ( error: unknown, token: String ) =>{
             if (error){
                 console.log(error);
-                reject( 'Error generating token' )
+                reject( 'Error generando token' )
             } else {
                 resolve(token);
             }

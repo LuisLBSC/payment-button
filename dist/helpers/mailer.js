@@ -48,10 +48,7 @@ const googleapis_1 = require("googleapis");
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const OAuth2 = googleapis_1.google.auth.OAuth2;
-const oauth2Client = new OAuth2(process.env.CLIENT_ID, // Reemplaza con tu Client ID
-process.env.CLIENT_SECRET, // Reemplaza con tu Client Secret
-process.env.REDIRECT_URL // URL de redirección (puedes usar esta para obtener un token de acceso)
-);
+const oauth2Client = new OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.REDIRECT_URL);
 oauth2Client.setCredentials({
     refresh_token: process.env.REFRESH_TOKEN,
 });
@@ -92,7 +89,7 @@ const transporter = () => __awaiter(void 0, void 0, void 0, function* () {
     if (!password)
         missingParams.push('password');
     if (missingParams.length > 0) {
-        throw new Error(`Missing required configuration parameters: ${missingParams.join(', ')}`);
+        throw new Error(`Faltan parámetros de configuración requeridos: ${missingParams.join(', ')}`);
     }
     return nodemailer.createTransport({
         host: host,

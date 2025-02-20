@@ -17,7 +17,7 @@ export const getAllPaymentsByUser = async(req: Request, res: Response) => {
         const filters: any = {};
         
         if (!userId) {
-            return res.status(400).json({ msg: "User ID is required", error: true });
+            return res.status(400).json({ msg: "Usuario ID is requerido", error: true });
         }
 
         const user = await prisma.user.findUnique({
@@ -26,7 +26,7 @@ export const getAllPaymentsByUser = async(req: Request, res: Response) => {
         });
 
         if(!user){
-            return res.status(404).json({msg: "User not found", error: true});
+            return res.status(404).json({msg: "Usuario no encontrado", error: true});
         }
 
         const isAdmin = user.profile.name === "ADMIN";
@@ -57,7 +57,7 @@ export const getAllPaymentsByUser = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting payments',
+            msg: 'Error obteniendo pagos',
             error
         });
     }
@@ -72,7 +72,7 @@ export const getPaymentById = async(req: Request, res: Response) => {
         const existingPayment = await prisma.payment.findFirst({where: {id: idNumber}, include: { debt: true, transaction: true }});
 
         if(!existingPayment)
-            res.status(404).json({msg: 'Payment not found', error: false, data:[]});
+            res.status(404).json({msg: 'Pago no encontrado', error: false, data:[]});
     
         res.json({
             msg: 'ok',
@@ -84,7 +84,7 @@ export const getPaymentById = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting payment',
+            msg: 'Error obteniendo pago',
             error: error,
             data: []
 
@@ -101,7 +101,7 @@ export const deletePaymentById = async(req: Request, res: Response) => {
         await prisma.payment.delete({ where: {id: idNumber}});
 
         res.status(200).json({
-            msg: `Payment with checkout_id ${id} deleted`,
+            msg: `Pago con checkout_id ${id} eliminado`,
             error: false
         });
     } catch (error) {

@@ -10,7 +10,7 @@ const generateJWT = (id) => {
         }, (error, token) => {
             if (error) {
                 console.log(error);
-                reject('Error generating token');
+                reject('Error generando token');
             }
             else {
                 resolve(token);

@@ -54,7 +54,7 @@ const getAllTransactions = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting transactions',
+            msg: 'Error obteniendo transacciones',
             error
         });
     }

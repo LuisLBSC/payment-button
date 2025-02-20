@@ -70,7 +70,7 @@ export const getAllProfiles = async (req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting profiles',
+            msg: 'Error obteniendo perfiles',
             error
         });
     }
@@ -102,7 +102,7 @@ export const getProfileById = async (req: Request, res: Response) => {
         });
 
         if (!existingProfile)
-            res.status(404).json({ msg: 'Profile not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Perfil no encontrado', error: false, data: [] });
 
         const entityMap = new Map();
         existingProfile?.roles.forEach((profileRole) => {
@@ -145,7 +145,7 @@ export const getProfileById = async (req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting profile',
+            msg: 'Error obteniendo perfil',
             error: error,
             data: []
 
@@ -180,7 +180,7 @@ export const saveProfile = async (req: Request, res: Response) => {
 
                 res.json({
                     updatedProfile,
-                    msg: `Profile ${updatedProfile.name} updated and new roles assigned`
+                    msg: `Perfil ${updatedProfile.name} actualizado y nuevos roles asignados`
                 });
             }
             else {
@@ -194,7 +194,7 @@ export const saveProfile = async (req: Request, res: Response) => {
 
                 res.json({
                     updatedProfile,
-                    msg: `Profile ${updatedProfile.name} updated with existing roles`
+                    msg: `Perfil ${updatedProfile.name} actualizado con roles existentes`
                 });
             }
         }
@@ -211,7 +211,7 @@ export const saveProfile = async (req: Request, res: Response) => {
 
             res.json({
                 newProfile,
-                msg: `Profile ${newProfile.name} created with roles`
+                msg: `Perfil ${newProfile.name} creado con roles`
             });
         }
     } catch (error) {
@@ -233,7 +233,7 @@ export const updateProfileById = async (req: Request, res: Response) => {
         const updatingProfile = await prisma.profile.findFirst({ where: { id: idNumber }, include: { roles: true } });
 
         if (!updatingProfile)
-            res.status(404).json({ msg: 'Profile not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Perfil no encontrado', error: false, data: [] });
 
         const existingRoleIds = updatingProfile?.roles.map(role => role.roleId);
         const newRoleIds = roleIds || [];
@@ -246,7 +246,7 @@ export const updateProfileById = async (req: Request, res: Response) => {
         if (description) updateData.description = description;
         updateData.active = 1;
 
-        let msg = 'with existing roles';
+        let msg = 'con roles existentes';
 
         if (rolesToRemove && rolesToRemove.length > 0) {
             await prisma.profileRole.deleteMany({
@@ -261,7 +261,7 @@ export const updateProfileById = async (req: Request, res: Response) => {
             await prisma.profileRole.createMany({
                 data: rolesToAdd.map((roleId: number) => ({ profileId: idNumber, roleId })),
             });
-            msg = 'and new roles assigned';
+            msg = 'y nuevos roles asignados';
         }
 
         const updatedProfile = await prisma.profile.update({
@@ -274,7 +274,7 @@ export const updateProfileById = async (req: Request, res: Response) => {
 
         res.status(200).json({
             updatedProfile,
-            msg: `Profile ${updatedProfile.name} updated ${msg}`,
+            msg: `Perfil ${updatedProfile.name} actualizado ${msg}`,
             error: false
         });
     } catch (error) {
@@ -305,7 +305,7 @@ export const deleteProfileById = async (req: Request, res: Response) => {
         });
 
         res.status(200).json({
-            msg: `Profile ${id} deleted`,
+            msg: `Perfil ${id} eliminado`,
             error: false
         });
     } catch (error) {

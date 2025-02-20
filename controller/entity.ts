@@ -14,7 +14,7 @@ export const getAllEntities = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting entities',
+            msg: 'Error obteniendo entidades',
             error
         });
     }
@@ -29,7 +29,7 @@ export const getEntityById = async(req: Request, res: Response) => {
         const existingEntity = await prisma.entity.findFirst({where: {id: idNumber}});
 
         if(!existingEntity)
-            res.status(404).json({msg: 'Entity not found', error: false, data:[]});
+            res.status(404).json({msg: 'Entidad no encontrada', error: false, data:[]});
     
         res.json({
             msg: 'ok',
@@ -40,7 +40,7 @@ export const getEntityById = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting entity',
+            msg: 'Error obteniendo entidades',
             error: error,
             data: []
 
@@ -56,7 +56,7 @@ export const getEntityByName = async(req: Request, res: Response) => {
         const existingEntity = await prisma.entity.findFirst({where: {name}});
 
         if(!existingEntity)
-            res.status(404).json({msg: 'Entity not found', error: false, data:[]});
+            res.status(404).json({msg: 'Entidad no encontrada', error: false, data:[]});
     
         res.json({
             msg: 'ok',
@@ -67,7 +67,7 @@ export const getEntityByName = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting entity',
+            msg: 'Error obteniendo entidades',
             error: error,
             data: []
 
@@ -85,7 +85,7 @@ export const saveEntity = async(req: Request, res: Response) => {
         })
         res.json({
             newEntity,
-            msg: `Entity ${newEntity.name} created`
+            msg: `Entidad ${newEntity.name} creada`
         });
     } catch (error) {
         console.log(error);
@@ -107,7 +107,7 @@ export const updateEntityById = async(req: Request, res: Response) => {
         const existingEntity = await prisma.entity.findFirst({where: {id: idNumber}});
 
         if(!existingEntity)
-            res.status(404).json({msg: 'Entity not found', error: false, data:[]});
+            res.status(404).json({msg: 'Entidad no encontrada', error: false, data:[]});
 
         await prisma.entity.update({
             where: {
@@ -119,7 +119,7 @@ export const updateEntityById = async(req: Request, res: Response) => {
             }
             });
         res.status(200).json({
-            msg: `Entity ${name} updated`,
+            msg: `Entidad ${name} actualizada`,
             error: false,
             records: 1
         });
@@ -142,7 +142,7 @@ export const updateEntityByName = async(req: Request, res: Response) => {
         const existingEntity = await prisma.entity.findFirst({where: {name}});
 
         if(!existingEntity)
-            res.status(404).json({msg: 'Entity not found', error: false, data:[]});
+            res.status(404).json({msg: 'Entidad no encontrada', error: false, data:[]});
 
         await prisma.entity.update({
             where: {
@@ -153,7 +153,7 @@ export const updateEntityByName = async(req: Request, res: Response) => {
             }
             });
         res.status(200).json({
-            msg: `Entity ${name} updated`,
+            msg: `Entidad ${name} actualizada`,
             error: false,
             records: 1
         });
@@ -182,7 +182,7 @@ export const deleteEntityById = async(req: Request, res: Response) => {
         });
 
         res.status(200).json({
-            msg: `Entity ${id} deleted`,
+            msg: `Entidad ${id} eliminada`,
             error: false
         });
     } catch (error) {
@@ -209,7 +209,7 @@ export const deleteEntityByName = async(req: Request, res: Response) => {
         });
 
         res.status(200).json({
-            msg: `Entity ${name} deleted`,
+            msg: `Entidad ${name} eliminada`,
             error: false
         });
     } catch (error) {

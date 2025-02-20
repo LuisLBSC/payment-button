@@ -19,14 +19,14 @@ const getAllPaymentsByUser = (req, res) => __awaiter(void 0, void 0, void 0, fun
         const dateEnd = req.query.dateEnd;
         const filters = {};
         if (!userId) {
-            return res.status(400).json({ msg: "User ID is required", error: true });
+            return res.status(400).json({ msg: "Usuario ID is requerido", error: true });
         }
         const user = yield prisma.user.findUnique({
             where: { id: parseInt(userId, 10) },
             include: { profile: true }
         });
         if (!user) {
-            return res.status(404).json({ msg: "User not found", error: true });
+            return res.status(404).json({ msg: "Usuario no encontrado", error: true });
         }
         const isAdmin = user.profile.name === "ADMIN";
         if (!isAdmin) {
@@ -59,7 +59,7 @@ const getAllPaymentsByUser = (req, res) => __awaiter(void 0, void 0, void 0, fun
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting payments',
+            msg: 'Error obteniendo pagos',
             error
         });
     }
@@ -73,7 +73,7 @@ const getPaymentById = (req, res) => __awaiter(void 0, void 0, void 0, function*
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingPayment = yield prisma.payment.findFirst({ where: { id: idNumber }, include: { debt: true, transaction: true } });
         if (!existingPayment)
-            res.status(404).json({ msg: 'Payment not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Pago no encontrado', error: false, data: [] });
         res.json({
             msg: 'ok',
             error: false,
@@ -84,7 +84,7 @@ const getPaymentById = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting payment',
+            msg: 'Error obteniendo pago',
             error: error,
             data: []
         });
@@ -99,7 +99,7 @@ const deletePaymentById = (req, res) => __awaiter(void 0, void 0, void 0, functi
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         yield prisma.payment.delete({ where: { id: idNumber } });
         res.status(200).json({
-            msg: `Payment with checkout_id ${id} deleted`,
+            msg: `Pago con checkout_id ${id} eliminado`,
             error: false
         });
     }

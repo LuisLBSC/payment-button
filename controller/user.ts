@@ -15,7 +15,7 @@ export const getAllUsers = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting users',
+            msg: 'Error obteniendo usuarios',
             error
         });
     }
@@ -30,7 +30,7 @@ export const getUserById = async(req: Request, res: Response) => {
         const existingUser = await prisma.user.findFirst({where: {id: idNumber}});
         
         if(!existingUser)
-            res.status(404).json({msg: 'User not found', error: false, data:[]});
+            res.status(404).json({msg: 'Usuario no encontrado', error: false, data:[]});
         else{
             res.json({
                 msg: 'ok',
@@ -43,7 +43,7 @@ export const getUserById = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting user',
+            msg: 'Error obteniendo usuario',
             error: error,
             data: []
 
@@ -59,7 +59,7 @@ export const getUserByUsername = async(req: Request, res: Response) => {
         const existingUser = await prisma.user.findFirst({where: {username}});
         
         if(!existingUser){
-            res.status(404).json({msg: 'User not found', error: false, data:[]});
+            res.status(404).json({msg: 'Usuario no encontrado', error: false, data:[]});
         }
         else{
             res.json({
@@ -73,7 +73,7 @@ export const getUserByUsername = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting user',
+            msg: 'Error obteniendo usuario',
             error: error,
             data: []
 
@@ -128,7 +128,7 @@ export const saveUser = async(req: Request, res: Response) => {
         });
         res.json({
             newUser,
-            msg: `User ${newUser.username} created`
+            msg: `Usuario ${newUser.username} creado`
         });
     } catch (error) {
         console.log(error);
@@ -162,7 +162,7 @@ export const updateUserById = async(req: Request, res: Response) => {
         const existingUser = await prisma.user.findFirst({where: {id: idNumber}});
         
         if(!existingUser)
-            res.status(404).json({msg: 'User not found', error: false, data:[]});
+            res.status(404).json({msg: 'Usuario no encontrado', error: false, data:[]});
 
         const updateData: any = {};
         if (username) updateData.username = username;
@@ -190,7 +190,7 @@ export const updateUserById = async(req: Request, res: Response) => {
 
         res.status(200).json({
             updatedUser,
-            msg: `User ${updatedUser.username} updated`,
+            msg: `Usuario ${updatedUser.username} actualizado`,
             error: false,
             records: 1
         });
@@ -220,7 +220,7 @@ export const deleteUserById = async(req: Request, res: Response) => {
         });
         
         res.status(200).json({
-            msg: `User ${id} deleted`,
+            msg: `Usuario ${id} eliminado`,
             error: false
         })
     } catch (error) {

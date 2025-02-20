@@ -105,7 +105,7 @@ export const saveEntitiesWithRoles = async (req: Request, res: Response) => {
         }
 
         res.json({
-            msg: 'Entities and roles created/updated successfully.',
+            msg: 'Entidades y roles creados/actualizados exitosamente',
             data: entitiesWithRoles,
         });
     } catch (error) {

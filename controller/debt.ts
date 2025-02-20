@@ -30,7 +30,7 @@ export const getAllDebtsByUser = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting payments',
+            msg: 'Error al obtener pagos',
             error
         });
     }
@@ -45,7 +45,7 @@ export const getDebtById = async(req: Request, res: Response) => {
         const existingDebt = await prisma.debt.findFirst({where: {id: idNumber}});
 
         if(!existingDebt)
-            res.status(404).json({msg: 'Debt not found', error: false, data:[]});
+            res.status(404).json({msg: 'Deuda no encontrada', error: false, data:[]});
     
         res.json({
             msg: 'ok',
@@ -57,7 +57,7 @@ export const getDebtById = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting debt',
+            msg: 'Error obteniendo deudas',
             error: error,
             data: []
 
@@ -111,7 +111,7 @@ export const saveDebt = async(req: Request, res: Response) => {
 
         res.json({
             newDebt,
-            msg: `Debt ${newDebt.titleName} created`
+            msg: `Deuda ${newDebt.titleName} creada`
         });
     } catch (error) {
         console.log(error);
@@ -131,7 +131,7 @@ export const deleteDebtById = async(req: Request, res: Response) => {
         await prisma.debt.delete({where: {id: idNumber}});
 
         res.status(200).json({
-            msg: `Debt ${id} deleted`,
+            msg: `Deuda ${id} eliminada`,
             error: false
         });
     } catch (error) {

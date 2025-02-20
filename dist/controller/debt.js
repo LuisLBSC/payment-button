@@ -36,7 +36,7 @@ const getAllDebtsByUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting payments',
+            msg: 'Error al obtener pagos',
             error
         });
     }
@@ -50,7 +50,7 @@ const getDebtById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingDebt = yield prisma.debt.findFirst({ where: { id: idNumber } });
         if (!existingDebt)
-            res.status(404).json({ msg: 'Debt not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Deuda no encontrada', error: false, data: [] });
         res.json({
             msg: 'ok',
             error: false,
@@ -61,7 +61,7 @@ const getDebtById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting debt',
+            msg: 'Error obteniendo deudas',
             error: error,
             data: []
         });
@@ -94,7 +94,7 @@ const saveDebt = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         res.json({
             newDebt,
-            msg: `Debt ${newDebt.titleName} created`
+            msg: `Deuda ${newDebt.titleName} creada`
         });
     }
     catch (error) {
@@ -114,7 +114,7 @@ const deleteDebtById = (req, res) => __awaiter(void 0, void 0, void 0, function*
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         yield prisma.debt.delete({ where: { id: idNumber } });
         res.status(200).json({
-            msg: `Debt ${id} deleted`,
+            msg: `Deuda ${id} eliminada`,
             error: false
         });
     }

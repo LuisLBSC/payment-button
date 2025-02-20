@@ -40,7 +40,7 @@ export const login = async (req: Request, res: Response) => {
 
         if (!existingUser) {
             return res.status(404).json({
-                msg: 'User not found',
+                msg: 'Usuario no encontrado',
                 error: true,
                 data: []
             });
@@ -51,7 +51,7 @@ export const login = async (req: Request, res: Response) => {
 
         if (!userProfile) {
             return res.status(400).json({
-                msg: 'User without assigned profile',
+                msg: 'Usuario sin perfil asignado',
                 error: true,
                 data: []
             });
@@ -59,7 +59,7 @@ export const login = async (req: Request, res: Response) => {
 
         if (!existingUser.verified) {
             return res.status(403).json({
-                msg: 'User not verified',
+                msg: 'Usuario no verificado',
                 error: true,
                 data: []
             });
@@ -123,10 +123,10 @@ export const login = async (req: Request, res: Response) => {
             if (fromEmail && defaultEmails && logintHtmlEmail && titleEmail)
                 sendEmail(fromEmail.value || '', existingUser.email, '', logintHtmlEmail.value, titleEmail.value, 'Info');
             else {
-                return res.status(400).json({ msg: 'Invalid Password and missing required parameters for email configuration', error: false, data: [] });
+                return res.status(400).json({ msg: 'Contraseña no válida y faltan parámetros requeridos para envio de correos', error: false, data: [] });
             }
 
-            return res.status(401).json({ msg: 'Invalid Password', error: false, data: [] });
+            return res.status(401).json({ msg: 'Contraseña incorrecta', error: false, data: [] });
         }
 
 
@@ -158,12 +158,12 @@ export const resetPassword = async (req: Request, res: Response) => {
         const existingUser = await prisma.user.findFirst({ where: { id, active: 1 } });
 
         if (!existingUser) {
-            return res.status(404).json({ msg: 'User not found', error: true, data: [] });
+            return res.status(404).json({ msg: 'Usuario no encontrado', error: true, data: [] });
         }
 
         const matchPasswords = await validatePassword(password, existingUser.password);
         if (matchPasswords) {
-            return res.status(400).json({ msg: 'New password cannot be the same as the old one', error: true, data: [] });
+            return res.status(400).json({ msg: 'Nueva contraseña no puede ser igual que la anterior', error: true, data: [] });
         }
 
         const encryptedPassword = await encryptPassword(password);
@@ -176,7 +176,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         });
 
         res.json({
-            msg: `Username: ${updatedUser.username} -> Password changed successfully`,
+            msg: `Usuario: ${updatedUser.username} -> contraseña cambiada con éxito`,
             error: false
         });
     } catch (error) {
@@ -210,7 +210,7 @@ export const signUp = async (req: Request, res: Response) => {
 
         const existingUser = await prisma.user.findFirst({ where: { username: username, active: 1 } });
 
-        if (existingUser) return res.status(409).json({ msg: 'User already exists', error: true, data: [] });
+        if (existingUser) return res.status(409).json({ msg: 'Usuario ya existe', error: true, data: [] });
 
         const encryptedPassword = await encryptPassword(password);
 
@@ -248,7 +248,7 @@ export const signUp = async (req: Request, res: Response) => {
             sendEmail(fromEmail.value || '', newUser.email, '', htmlEmailReplaced, titleEmail.value, 'Info');
 
         return res.json({
-            msg: `Username: ${newUser.username} registed`,
+            msg: `Usuario: ${newUser.username} registrado`,
             error: false,
             records: 1,
             data: newUser
@@ -267,14 +267,14 @@ export const signUp = async (req: Request, res: Response) => {
 export const verifyAccount = async (req: Request, res: Response) => {
     try {
         const { verifiedToken } = req.params;
-        if (!verifiedToken) return res.status(400).json({ msg: 'An error occurred while verifying account', error: true, records: 0, data: [] });
+        if (!verifiedToken) return res.status(400).json({ msg: 'Se produjo un error al verificar la cuenta.', error: true, records: 0, data: [] });
 
         const validateToken = jwt.verify(verifiedToken, process.env.SECRETKEY || '');
-        if (!validateToken) return res.status(400).json({ msg: 'Invalid token', error: true, records: 0, data: [] });
+        if (!validateToken) return res.status(400).json({ msg: 'Token inválido', error: true, records: 0, data: [] });
 
         const registeredUser = await prisma.user.findUnique({ where: { email: validateToken } });
 
-        if (!registeredUser) return res.status(404).json({ msg: 'User not found', error: true, data: [] });
+        if (!registeredUser) return res.status(404).json({ msg: 'Usuario no encontrado', error: true, data: [] });
 
         const { id } = registeredUser;
         const verifiedUser = await prisma.user.update({
@@ -287,7 +287,7 @@ export const verifyAccount = async (req: Request, res: Response) => {
 
         res.status(200).json({
             verifiedUser,
-            msg: `User ${verifiedUser.username} verified`,
+            msg: `Usuario ${verifiedUser.username} verificado`,
             error: false,
             records: 1
         });
@@ -308,7 +308,7 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
         const { email } = req.body;
         const registeredUser = await prisma.user.findUnique({ where: { email } });
 
-        if (!registeredUser) return res.status(404).json({ msg: 'User not found', error: true, data: [] });
+        if (!registeredUser) return res.status(404).json({ msg: 'Usuario no encontrado', error: true, data: [] });
 
         const verifiedToken = jwt.sign(email, `${process.env.SECRETKEY}`, {});
         const { id } = registeredUser;
@@ -332,7 +332,7 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
             sendEmail(fromEmail.value || '', email, '', htmlEmailReplaced, titleEmail.value, 'Info');
 
         return res.json({
-            msg: `Verification email sent successfully`,
+            msg: `Correo de verificación enviado correctamente`,
             error: false
         });
     } catch (error) {

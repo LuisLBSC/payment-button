@@ -23,7 +23,7 @@ const sendEmail = (from, to, text, html, subject, typeEmail) => __awaiter(void 0
         });
         console.debug({
             error: false,
-            msg: "Email sent successfully",
+            msg: "Correo enviado correctamente",
             data: result,
         });
     }

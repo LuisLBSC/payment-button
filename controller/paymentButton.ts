@@ -14,7 +14,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         const customer = await prisma.user.findFirst({ where: { id: customerId, active: 1 } });
         if (!customer) {
             return res.status(404).json({
-                msg: 'Customer not found or inactive',
+                msg: 'Cliente no encontrado o inactivo',
                 error: true,
             });
         }
@@ -43,7 +43,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         }>;
         if (!debts || debts.length === 0) {
             return res.status(404).json({
-                msg: 'Debts not found',
+                msg: 'Deudas no encontradas',
                 error: true,
             });
         }
@@ -75,7 +75,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
 
         if (missingParams.length > 0) {
             return res.status(400).json({
-                msg: `Missing required parameters: ${missingParams.join(', ')}`,
+                msg: `Faltan parámetros requeridos: ${missingParams.join(', ')}`,
                 error: true,
             });
         }
@@ -160,7 +160,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         }
         else {
             return res.status(404).json({
-                msg: 'Error getting checkoutId',
+                msg: 'Error al obtener checkoutId',
                 error: true,
                 data,
             });
@@ -181,7 +181,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
 
         if (!checkoutId) {
             return res.status(400).json({
-                msg: 'checkoutId is required',
+                msg: 'checkoutId es requerido',
                 error: true,
             });
         }
@@ -207,7 +207,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
 
         if (missingParams.length > 0) {
             return res.status(400).json({
-                msg: `Missing required parameters: ${missingParams.join(', ')}`,
+                msg: `Faltan parámetros requeridos: ${missingParams.join(', ')}`,
                 error: true,
             });
         }
@@ -335,7 +335,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                 where: {trxId: data.id}
             });
             return res.status(404).json({
-                msg: `Unsuccessful payment: ${data.result.description}`,
+                msg: `Pago fallido: ${data.result.description}`,
                 error: true,
                 data
             });

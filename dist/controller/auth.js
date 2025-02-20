@@ -50,7 +50,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         if (!existingUser) {
             return res.status(404).json({
-                msg: 'User not found',
+                msg: 'Usuario no encontrado',
                 error: true,
                 data: []
             });
@@ -59,14 +59,14 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const userProfile = existingUser === null || existingUser === void 0 ? void 0 : existingUser.profile;
         if (!userProfile) {
             return res.status(400).json({
-                msg: 'User without assigned profile',
+                msg: 'Usuario sin perfil asignado',
                 error: true,
                 data: []
             });
         }
         if (!existingUser.verified) {
             return res.status(403).json({
-                msg: 'User not verified',
+                msg: 'Usuario no verificado',
                 error: true,
                 data: []
             });
@@ -124,9 +124,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             if (fromEmail && defaultEmails && logintHtmlEmail && titleEmail)
                 (0, mail_1.sendEmail)(fromEmail.value || '', existingUser.email, '', logintHtmlEmail.value, titleEmail.value, 'Info');
             else {
-                return res.status(400).json({ msg: 'Invalid Password and missing required parameters for email configuration', error: false, data: [] });
+                return res.status(400).json({ msg: 'Contraseña no válida y faltan parámetros requeridos para envio de correos', error: false, data: [] });
             }
-            return res.status(401).json({ msg: 'Invalid Password', error: false, data: [] });
+            return res.status(401).json({ msg: 'Contraseña incorrecta', error: false, data: [] });
         }
         generatedToken = yield (0, generate_jwt_1.generateJWT)(userWithEntities.id);
         return res.json({
@@ -154,11 +154,11 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingUser = yield prisma.user.findFirst({ where: { id, active: 1 } });
         if (!existingUser) {
-            return res.status(404).json({ msg: 'User not found', error: true, data: [] });
+            return res.status(404).json({ msg: 'Usuario no encontrado', error: true, data: [] });
         }
         const matchPasswords = yield (0, password_1.validatePassword)(password, existingUser.password);
         if (matchPasswords) {
-            return res.status(400).json({ msg: 'New password cannot be the same as the old one', error: true, data: [] });
+            return res.status(400).json({ msg: 'Nueva contraseña no puede ser igual que la anterior', error: true, data: [] });
         }
         const encryptedPassword = yield (0, password_1.encryptPassword)(password);
         const updatedUser = yield prisma.user.update({
@@ -168,7 +168,7 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             }
         });
         res.json({
-            msg: `Username: ${updatedUser.username} -> Password changed successfully`,
+            msg: `Usuario: ${updatedUser.username} -> contraseña cambiada con éxito`,
             error: false
         });
     }
@@ -190,7 +190,7 @@ const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingUser = yield prisma.user.findFirst({ where: { username: username, active: 1 } });
         if (existingUser)
-            return res.status(409).json({ msg: 'User already exists', error: true, data: [] });
+            return res.status(409).json({ msg: 'Usuario ya existe', error: true, data: [] });
         const encryptedPassword = yield (0, password_1.encryptPassword)(password);
         const verifiedToken = jsonwebtoken_1.default.sign(email, `${process.env.SECRETKEY}`, {});
         const newUser = yield prisma.user.create({
@@ -217,7 +217,7 @@ const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (fromEmail && newUser.email && htmlEmailReplaced && titleEmail)
             (0, mail_1.sendEmail)(fromEmail.value || '', newUser.email, '', htmlEmailReplaced, titleEmail.value, 'Info');
         return res.json({
-            msg: `Username: ${newUser.username} registed`,
+            msg: `Usuario: ${newUser.username} registrado`,
             error: false,
             records: 1,
             data: newUser
@@ -237,13 +237,13 @@ const verifyAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const { verifiedToken } = req.params;
         if (!verifiedToken)
-            return res.status(400).json({ msg: 'An error occurred while verifying account', error: true, records: 0, data: [] });
+            return res.status(400).json({ msg: 'Se produjo un error al verificar la cuenta.', error: true, records: 0, data: [] });
         const validateToken = jsonwebtoken_1.default.verify(verifiedToken, process.env.SECRETKEY || '');
         if (!validateToken)
-            return res.status(400).json({ msg: 'Invalid token', error: true, records: 0, data: [] });
+            return res.status(400).json({ msg: 'Token inválido', error: true, records: 0, data: [] });
         const registeredUser = yield prisma.user.findUnique({ where: { email: validateToken } });
         if (!registeredUser)
-            return res.status(404).json({ msg: 'User not found', error: true, data: [] });
+            return res.status(404).json({ msg: 'Usuario no encontrado', error: true, data: [] });
         const { id } = registeredUser;
         const verifiedUser = yield prisma.user.update({
             where: { id },
@@ -254,7 +254,7 @@ const verifyAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
         res.status(200).json({
             verifiedUser,
-            msg: `User ${verifiedUser.username} verified`,
+            msg: `Usuario ${verifiedUser.username} verificado`,
             error: false,
             records: 1
         });
@@ -274,7 +274,7 @@ const resendVerificationEmail = (req, res) => __awaiter(void 0, void 0, void 0, 
         const { email } = req.body;
         const registeredUser = yield prisma.user.findUnique({ where: { email } });
         if (!registeredUser)
-            return res.status(404).json({ msg: 'User not found', error: true, data: [] });
+            return res.status(404).json({ msg: 'Usuario no encontrado', error: true, data: [] });
         const verifiedToken = jsonwebtoken_1.default.sign(email, `${process.env.SECRETKEY}`, {});
         const { id } = registeredUser;
         const verifiedUser = yield prisma.user.update({
@@ -290,7 +290,7 @@ const resendVerificationEmail = (req, res) => __awaiter(void 0, void 0, void 0, 
         if (fromEmail && email && htmlEmailReplaced && titleEmail)
             (0, mail_1.sendEmail)(fromEmail.value || '', email, '', htmlEmailReplaced, titleEmail.value, 'Info');
         return res.json({
-            msg: `Verification email sent successfully`,
+            msg: `Correo de verificación enviado correctamente`,
             error: false
         });
     }

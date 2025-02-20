@@ -23,7 +23,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         const customer = yield prisma.user.findFirst({ where: { id: customerId, active: 1 } });
         if (!customer) {
             return res.status(404).json({
-                msg: 'Customer not found or inactive',
+                msg: 'Cliente no encontrado o inactivo',
                 error: true,
             });
         }
@@ -32,7 +32,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         });
         if (!debts || debts.length === 0) {
             return res.status(404).json({
-                msg: 'Debts not found',
+                msg: 'Deudas no encontradas',
                 error: true,
             });
         }
@@ -68,7 +68,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             missingParams.push('base0');
         if (missingParams.length > 0) {
             return res.status(400).json({
-                msg: `Missing required parameters: ${missingParams.join(', ')}`,
+                msg: `Faltan parámetros requeridos: ${missingParams.join(', ')}`,
                 error: true,
             });
         }
@@ -112,7 +112,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         }
         else {
             return res.status(404).json({
-                msg: 'Error getting checkoutId',
+                msg: 'Error al obtener checkoutId',
                 error: true,
                 data,
             });
@@ -133,7 +133,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
         const { checkoutId } = req.body;
         if (!checkoutId) {
             return res.status(400).json({
-                msg: 'checkoutId is required',
+                msg: 'checkoutId es requerido',
                 error: true,
             });
         }
@@ -157,7 +157,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
             missingParams.push('token');
         if (missingParams.length > 0) {
             return res.status(400).json({
-                msg: `Missing required parameters: ${missingParams.join(', ')}`,
+                msg: `Faltan parámetros requeridos: ${missingParams.join(', ')}`,
                 error: true,
             });
         }
@@ -276,7 +276,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                 where: { trxId: data.id }
             });
             return res.status(404).json({
-                msg: `Unsuccessful payment: ${data.result.description}`,
+                msg: `Pago fallido: ${data.result.description}`,
                 error: true,
                 data
             });

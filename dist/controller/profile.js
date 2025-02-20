@@ -72,7 +72,7 @@ const getAllProfiles = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting profiles',
+            msg: 'Error obteniendo perfiles',
             error
         });
     }
@@ -103,7 +103,7 @@ const getProfileById = (req, res) => __awaiter(void 0, void 0, void 0, function*
             }
         });
         if (!existingProfile)
-            res.status(404).json({ msg: 'Profile not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Perfil no encontrado', error: false, data: [] });
         const entityMap = new Map();
         existingProfile === null || existingProfile === void 0 ? void 0 : existingProfile.roles.forEach((profileRole) => {
             profileRole.role.entities.forEach((roleEntity) => {
@@ -142,7 +142,7 @@ const getProfileById = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting profile',
+            msg: 'Error obteniendo perfil',
             error: error,
             data: []
         });
@@ -172,7 +172,7 @@ const saveProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 });
                 res.json({
                     updatedProfile,
-                    msg: `Profile ${updatedProfile.name} updated and new roles assigned`
+                    msg: `Perfil ${updatedProfile.name} actualizado y nuevos roles asignados`
                 });
             }
             else {
@@ -185,7 +185,7 @@ const saveProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 });
                 res.json({
                     updatedProfile,
-                    msg: `Profile ${updatedProfile.name} updated with existing roles`
+                    msg: `Perfil ${updatedProfile.name} actualizado con roles existentes`
                 });
             }
         }
@@ -201,7 +201,7 @@ const saveProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             });
             res.json({
                 newProfile,
-                msg: `Profile ${newProfile.name} created with roles`
+                msg: `Perfil ${newProfile.name} creado con roles`
             });
         }
     }
@@ -223,7 +223,7 @@ const updateProfileById = (req, res) => __awaiter(void 0, void 0, void 0, functi
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const updatingProfile = yield prisma.profile.findFirst({ where: { id: idNumber }, include: { roles: true } });
         if (!updatingProfile)
-            res.status(404).json({ msg: 'Profile not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Perfil no encontrado', error: false, data: [] });
         const existingRoleIds = updatingProfile === null || updatingProfile === void 0 ? void 0 : updatingProfile.roles.map(role => role.roleId);
         const newRoleIds = roleIds || [];
         const rolesToRemove = existingRoleIds === null || existingRoleIds === void 0 ? void 0 : existingRoleIds.filter(roleId => !newRoleIds.includes(roleId));
@@ -234,7 +234,7 @@ const updateProfileById = (req, res) => __awaiter(void 0, void 0, void 0, functi
         if (description)
             updateData.description = description;
         updateData.active = 1;
-        let msg = 'with existing roles';
+        let msg = 'con roles existentes';
         if (rolesToRemove && rolesToRemove.length > 0) {
             yield prisma.profileRole.deleteMany({
                 where: {
@@ -247,7 +247,7 @@ const updateProfileById = (req, res) => __awaiter(void 0, void 0, void 0, functi
             yield prisma.profileRole.createMany({
                 data: rolesToAdd.map((roleId) => ({ profileId: idNumber, roleId })),
             });
-            msg = 'and new roles assigned';
+            msg = 'y nuevos roles asignados';
         }
         const updatedProfile = yield prisma.profile.update({
             where: {
@@ -258,7 +258,7 @@ const updateProfileById = (req, res) => __awaiter(void 0, void 0, void 0, functi
         });
         res.status(200).json({
             updatedProfile,
-            msg: `Profile ${updatedProfile.name} updated ${msg}`,
+            msg: `Perfil ${updatedProfile.name} actualizado ${msg}`,
             error: false
         });
     }
@@ -288,7 +288,7 @@ const deleteProfileById = (req, res) => __awaiter(void 0, void 0, void 0, functi
             }
         });
         res.status(200).json({
-            msg: `Profile ${id} deleted`,
+            msg: `Perfil ${id} eliminado`,
             error: false
         });
     }

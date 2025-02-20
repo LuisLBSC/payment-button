@@ -17,7 +17,7 @@ export const getAllRoles = async (req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting roles',
+            msg: 'Error obteniendo roles',
             error
         });
     }
@@ -32,7 +32,7 @@ export const getRoleById = async (req: Request, res: Response) => {
         const existingRole = await prisma.role.findFirst({ where: { id: idNumber }, include: { entities: { include: { entity: true } } } });
 
         if (!existingRole)
-            res.status(404).json({ msg: 'Role not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Rol no encontrado', error: false, data: [] });
 
         res.json({
             msg: 'ok',
@@ -43,7 +43,7 @@ export const getRoleById = async (req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting role',
+            msg: 'Error obteniendo rol',
             error: error,
             data: []
 
@@ -79,7 +79,7 @@ export const saveRole = async (req: Request, res: Response) => {
 
                 res.json({
                     updatedRole,
-                    msg: `Role ${updatedRole.name} updated and new entities assigned`
+                    msg: `Rol ${updatedRole.name} actualizado y nuevas entidades asignadas`
                 });
             }
             else{
@@ -93,7 +93,7 @@ export const saveRole = async (req: Request, res: Response) => {
 
                 res.json({
                     updatedRole,
-                    msg: `Role ${updatedRole.name} updated with existing entities`
+                    msg: `Rol ${updatedRole.name} actualizado con entidades existentes`
                 });
             }
         }
@@ -110,7 +110,7 @@ export const saveRole = async (req: Request, res: Response) => {
 
             res.json({
                 newRole,
-                msg: `Role ${newRole.name} created with roles`
+                msg: `Rol ${newRole.name} creado con roles`
             });
         }
 
@@ -131,7 +131,7 @@ export const updateRoleById = async (req: Request, res: Response) => {
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const updatingRole = await prisma.role.findFirst({ where: { id: idNumber }, include: { entities: true } });
         if (!updatingRole)
-            res.status(404).json({ msg: 'Role not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Rol no encontrado', error: false, data: [] });
 
         const existingEntityIds = updatingRole?.entities.map(entity => entity.entityId);
         const newEntityIds = entityIds.filter((entityId : number) => !existingEntityIds?.includes(entityId) );
@@ -152,7 +152,7 @@ export const updateRoleById = async (req: Request, res: Response) => {
 
             res.status(200).json({
                 updatingRole,
-                msg: `Role ${updatingRole.name} updated and new entities assigned`,
+                msg: `Rol ${updatingRole.name} actualizado y nuevas entidades asignadas`,
                 error: false
             });
         }
@@ -169,7 +169,7 @@ export const updateRoleById = async (req: Request, res: Response) => {
 
             res.status(200).json({
                 updatingRole,
-                msg: `Role ${updatingRole.name} updated with existing entities`
+                msg: `Rol ${updatingRole.name} actualizado con entidades existentes`
             });
         }
     } catch (error) {
@@ -193,7 +193,7 @@ export const deleteRoleById = async (req: Request, res: Response) => {
 
         if (!roleExists) {
             return res.status(404).json({
-                msg: `Role with id ${idNumber} not found`,
+                msg: `Rol con id ${idNumber} no encontrado`,
                 error: true,
                 records: 0,
                 data: [],
@@ -214,7 +214,7 @@ export const deleteRoleById = async (req: Request, res: Response) => {
         });
 
         res.status(200).json({
-            msg: `Role ${id} deleted and its details were deleted too`,
+            msg: `Rol ${id} eliminado y sus detalles también fueron eliminados`,
             error: false
         });
     } catch (error) {

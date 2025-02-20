@@ -25,7 +25,7 @@ const getAllEntities = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting entities',
+            msg: 'Error obteniendo entidades',
             error
         });
     }
@@ -39,7 +39,7 @@ const getEntityById = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingEntity = yield prisma.entity.findFirst({ where: { id: idNumber } });
         if (!existingEntity)
-            res.status(404).json({ msg: 'Entity not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Entidad no encontrada', error: false, data: [] });
         res.json({
             msg: 'ok',
             error: false,
@@ -50,7 +50,7 @@ const getEntityById = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting entity',
+            msg: 'Error obteniendo entidades',
             error: error,
             data: []
         });
@@ -64,7 +64,7 @@ const getEntityByName = (req, res) => __awaiter(void 0, void 0, void 0, function
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingEntity = yield prisma.entity.findFirst({ where: { name } });
         if (!existingEntity)
-            res.status(404).json({ msg: 'Entity not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Entidad no encontrada', error: false, data: [] });
         res.json({
             msg: 'ok',
             error: false,
@@ -75,7 +75,7 @@ const getEntityByName = (req, res) => __awaiter(void 0, void 0, void 0, function
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting entity',
+            msg: 'Error obteniendo entidades',
             error: error,
             data: []
         });
@@ -92,7 +92,7 @@ const saveEntity = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         });
         res.json({
             newEntity,
-            msg: `Entity ${newEntity.name} created`
+            msg: `Entidad ${newEntity.name} creada`
         });
     }
     catch (error) {
@@ -113,7 +113,7 @@ const updateEntityById = (req, res) => __awaiter(void 0, void 0, void 0, functio
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingEntity = yield prisma.entity.findFirst({ where: { id: idNumber } });
         if (!existingEntity)
-            res.status(404).json({ msg: 'Entity not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Entidad no encontrada', error: false, data: [] });
         yield prisma.entity.update({
             where: {
                 id: idNumber
@@ -124,7 +124,7 @@ const updateEntityById = (req, res) => __awaiter(void 0, void 0, void 0, functio
             }
         });
         res.status(200).json({
-            msg: `Entity ${name} updated`,
+            msg: `Entidad ${name} actualizada`,
             error: false,
             records: 1
         });
@@ -146,7 +146,7 @@ const updateEntityByName = (req, res) => __awaiter(void 0, void 0, void 0, funct
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingEntity = yield prisma.entity.findFirst({ where: { name } });
         if (!existingEntity)
-            res.status(404).json({ msg: 'Entity not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Entidad no encontrada', error: false, data: [] });
         yield prisma.entity.update({
             where: {
                 name
@@ -156,7 +156,7 @@ const updateEntityByName = (req, res) => __awaiter(void 0, void 0, void 0, funct
             }
         });
         res.status(200).json({
-            msg: `Entity ${name} updated`,
+            msg: `Entidad ${name} actualizada`,
             error: false,
             records: 1
         });
@@ -185,7 +185,7 @@ const deleteEntityById = (req, res) => __awaiter(void 0, void 0, void 0, functio
             }
         });
         res.status(200).json({
-            msg: `Entity ${id} deleted`,
+            msg: `Entidad ${id} eliminada`,
             error: false
         });
     }
@@ -212,7 +212,7 @@ const deleteEntityByName = (req, res) => __awaiter(void 0, void 0, void 0, funct
             }
         });
         res.status(200).json({
-            msg: `Entity ${name} deleted`,
+            msg: `Entidad ${name} eliminada`,
             error: false
         });
     }

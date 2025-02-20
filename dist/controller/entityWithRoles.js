@@ -103,7 +103,7 @@ const saveEntitiesWithRoles = (req, res) => __awaiter(void 0, void 0, void 0, fu
             });
         }
         res.json({
-            msg: 'Entities and roles created/updated successfully.',
+            msg: 'Entidades y roles creados/actualizados exitosamente',
             data: entitiesWithRoles,
         });
     }

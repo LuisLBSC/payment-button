@@ -25,7 +25,7 @@ const getAllParams = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting params',
+            msg: 'Error obteniendo parámetros',
             error
         });
     }
@@ -51,7 +51,7 @@ const getRequestParams = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting params',
+            msg: 'Error obteniendo parámetros',
             error
         });
     }
@@ -65,7 +65,7 @@ const getParamById = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingParam = yield prisma.param.findFirst({ where: { id: idNumber } });
         if (!existingParam)
-            res.status(404).json({ msg: 'Param not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Parámetro no encontrado', error: false, data: [] });
         res.json({
             msg: 'ok',
             error: false,
@@ -76,7 +76,7 @@ const getParamById = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting param',
+            msg: 'Error obteniendo parámetro',
             error: error,
             data: []
         });
@@ -90,7 +90,7 @@ const getParamByKey = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingParam = yield prisma.param.findFirst({ where: { key } });
         if (!existingParam)
-            res.status(404).json({ msg: 'Param not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Parámetro no encontrado', error: false, data: [] });
         res.json({
             msg: 'ok',
             error: false,
@@ -101,7 +101,7 @@ const getParamByKey = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting param',
+            msg: 'Error obteniendo parámetro',
             error: error,
             data: []
         });
@@ -118,7 +118,7 @@ const saveParam = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         res.json({
             newParam,
-            msg: `Param ${newParam.key} created`
+            msg: `Parámetro ${newParam.key} creado`
         });
     }
     catch (error) {
@@ -139,7 +139,7 @@ const updateParamById = (req, res) => __awaiter(void 0, void 0, void 0, function
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingParam = yield prisma.param.findFirst({ where: { id: idNumber } });
         if (!existingParam)
-            res.status(404).json({ msg: 'Param not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Parámetro no encontrado', error: false, data: [] });
         yield prisma.param.update({
             where: {
                 id: idNumber
@@ -150,7 +150,7 @@ const updateParamById = (req, res) => __awaiter(void 0, void 0, void 0, function
             }
         });
         res.status(200).json({
-            msg: `Param ${key} updated`,
+            msg: `Parámetro ${key} actualizado`,
             error: false,
             records: 1
         });
@@ -172,7 +172,7 @@ const updateParamByKey = (req, res) => __awaiter(void 0, void 0, void 0, functio
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingParam = yield prisma.param.findFirst({ where: { key } });
         if (!existingParam)
-            res.status(404).json({ msg: 'Param not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Parámetro no encontrado', error: false, data: [] });
         yield prisma.param.update({
             where: {
                 key
@@ -182,7 +182,7 @@ const updateParamByKey = (req, res) => __awaiter(void 0, void 0, void 0, functio
             }
         });
         res.status(200).json({
-            msg: `Param ${key} updated`,
+            msg: `Parámetro ${key} actualizado`,
             error: false,
             records: 1
         });
@@ -211,7 +211,7 @@ const deleteParamById = (req, res) => __awaiter(void 0, void 0, void 0, function
             }
         });
         res.status(200).json({
-            msg: `Param ${id} deleted`,
+            msg: `Parámetro ${id} eliminado`,
             error: false
         });
     }
@@ -238,7 +238,7 @@ const deleteParamByKey = (req, res) => __awaiter(void 0, void 0, void 0, functio
             }
         });
         res.status(200).json({
-            msg: `Param ${key} deleted`,
+            msg: `Parámetro ${key} elñiminado`,
             error: false
         });
     }
@@ -256,7 +256,7 @@ const saveOrUpdateParams = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const params = req.body;
         if (!Array.isArray(params)) {
             return res.status(400).json({
-                msg: 'Request body must be an array of parameters',
+                msg: 'Solicitud debe ser un arreglo de parámetros',
                 error: true
             });
         }
@@ -276,7 +276,7 @@ const saveOrUpdateParams = (req, res) => __awaiter(void 0, void 0, void 0, funct
             });
         })));
         res.json({
-            msg: 'Params processed successfully',
+            msg: 'Parámetros procesados ​​exitosamente',
             error: false,
             records: updatedParams.length,
             data: updatedParams

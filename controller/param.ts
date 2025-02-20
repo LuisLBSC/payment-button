@@ -14,7 +14,7 @@ export const getAllParams = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting params',
+            msg: 'Error obteniendo parámetros',
             error
         });
     }
@@ -38,7 +38,7 @@ export const getRequestParams = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting params',
+            msg: 'Error obteniendo parámetros',
             error
         });
     }
@@ -53,7 +53,7 @@ export const getParamById = async(req: Request, res: Response) => {
         const existingParam = await prisma.param.findFirst({where: {id: idNumber}});
 
         if(!existingParam)
-            res.status(404).json({msg: 'Param not found', error: false, data:[]});
+            res.status(404).json({msg: 'Parámetro no encontrado', error: false, data:[]});
     
         res.json({
             msg: 'ok',
@@ -64,7 +64,7 @@ export const getParamById = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting param',
+            msg: 'Error obteniendo parámetro',
             error: error,
             data: []
 
@@ -80,7 +80,7 @@ export const getParamByKey = async(req: Request, res: Response) => {
         const existingParam = await prisma.param.findFirst({where: {key}});
 
         if(!existingParam)
-            res.status(404).json({msg: 'Param not found', error: false, data:[]});
+            res.status(404).json({msg: 'Parámetro no encontrado', error: false, data:[]});
     
         res.json({
             msg: 'ok',
@@ -91,7 +91,7 @@ export const getParamByKey = async(req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting param',
+            msg: 'Error obteniendo parámetro',
             error: error,
             data: []
 
@@ -109,7 +109,7 @@ export const saveParam = async(req: Request, res: Response) => {
         })
         res.json({
             newParam,
-            msg: `Param ${newParam.key} created`
+            msg: `Parámetro ${newParam.key} creado`
         });
     } catch (error) {
         console.log(error);
@@ -131,7 +131,7 @@ export const updateParamById = async(req: Request, res: Response) => {
         const existingParam = await prisma.param.findFirst({where: {id: idNumber}});
 
         if(!existingParam)
-            res.status(404).json({msg: 'Param not found', error: false, data:[]});
+            res.status(404).json({msg: 'Parámetro no encontrado', error: false, data:[]});
 
         await prisma.param.update({
             where: {
@@ -143,7 +143,7 @@ export const updateParamById = async(req: Request, res: Response) => {
             }
             });
         res.status(200).json({
-            msg: `Param ${key} updated`,
+            msg: `Parámetro ${key} actualizado`,
             error: false,
             records: 1
         });
@@ -166,7 +166,7 @@ export const updateParamByKey = async(req: Request, res: Response) => {
         const existingParam = await prisma.param.findFirst({where: {key}});
 
         if(!existingParam)
-            res.status(404).json({msg: 'Param not found', error: false, data:[]});
+            res.status(404).json({msg: 'Parámetro no encontrado', error: false, data:[]});
 
         await prisma.param.update({
             where: {
@@ -177,7 +177,7 @@ export const updateParamByKey = async(req: Request, res: Response) => {
             }
             });
         res.status(200).json({
-            msg: `Param ${key} updated`,
+            msg: `Parámetro ${key} actualizado`,
             error: false,
             records: 1
         });
@@ -206,7 +206,7 @@ export const deleteParamById = async(req: Request, res: Response) => {
         });
 
         res.status(200).json({
-            msg: `Param ${id} deleted`,
+            msg: `Parámetro ${id} eliminado`,
             error: false
         });
     } catch (error) {
@@ -233,7 +233,7 @@ export const deleteParamByKey = async(req: Request, res: Response) => {
         });
 
         res.status(200).json({
-            msg: `Param ${key} deleted`,
+            msg: `Parámetro ${key} elñiminado`,
             error: false
         });
     } catch (error) {
@@ -250,7 +250,7 @@ export const saveOrUpdateParams = async (req: Request, res: Response) => {
         const params = req.body;  
         if (!Array.isArray(params)) {
             return res.status(400).json({
-                msg: 'Request body must be an array of parameters',
+                msg: 'Solicitud debe ser un arreglo de parámetros',
                 error: true
             });
         }
@@ -274,7 +274,7 @@ export const saveOrUpdateParams = async (req: Request, res: Response) => {
         );
 
         res.json({
-            msg: 'Params processed successfully',
+            msg: 'Parámetros procesados ​​exitosamente',
             error: false,
             records: updatedParams.length,
             data: updatedParams

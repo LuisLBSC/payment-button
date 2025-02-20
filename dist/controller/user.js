@@ -26,7 +26,7 @@ const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting users',
+            msg: 'Error obteniendo usuarios',
             error
         });
     }
@@ -40,7 +40,7 @@ const getUserById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingUser = yield prisma.user.findFirst({ where: { id: idNumber } });
         if (!existingUser)
-            res.status(404).json({ msg: 'User not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Usuario no encontrado', error: false, data: [] });
         else {
             res.json({
                 msg: 'ok',
@@ -53,7 +53,7 @@ const getUserById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting user',
+            msg: 'Error obteniendo usuario',
             error: error,
             data: []
         });
@@ -67,7 +67,7 @@ const getUserByUsername = (req, res) => __awaiter(void 0, void 0, void 0, functi
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingUser = yield prisma.user.findFirst({ where: { username } });
         if (!existingUser) {
-            res.status(404).json({ msg: 'User not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Usuario no encontrado', error: false, data: [] });
         }
         else {
             res.json({
@@ -81,7 +81,7 @@ const getUserByUsername = (req, res) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Error getting user',
+            msg: 'Error obteniendo usuario',
             error: error,
             data: []
         });
@@ -124,7 +124,7 @@ const saveUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         res.json({
             newUser,
-            msg: `User ${newUser.username} created`
+            msg: `Usuario ${newUser.username} creado`
         });
     }
     catch (error) {
@@ -145,7 +145,7 @@ const updateUserById = (req, res) => __awaiter(void 0, void 0, void 0, function*
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingUser = yield prisma.user.findFirst({ where: { id: idNumber } });
         if (!existingUser)
-            res.status(404).json({ msg: 'User not found', error: false, data: [] });
+            res.status(404).json({ msg: 'Usuario no encontrado', error: false, data: [] });
         const updateData = {};
         if (username)
             updateData.username = username;
@@ -180,7 +180,7 @@ const updateUserById = (req, res) => __awaiter(void 0, void 0, void 0, function*
         });
         res.status(200).json({
             updatedUser,
-            msg: `User ${updatedUser.username} updated`,
+            msg: `Usuario ${updatedUser.username} actualizado`,
             error: false,
             records: 1
         });
@@ -209,7 +209,7 @@ const deleteUserById = (req, res) => __awaiter(void 0, void 0, void 0, function*
             }
         });
         res.status(200).json({
-            msg: `User ${id} deleted`,
+            msg: `Usuario ${id} eliminado`,
             error: false
         });
     }
