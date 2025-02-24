@@ -177,6 +177,10 @@ export const updateUserById = async(req: Request, res: Response) => {
         if (postCode) updateData.postCode = postCode;
         if (profileId) updateData.profileId = profileId;
 
+        if (!password) {
+            delete updateData.password;
+        }
+
         const updatedUser = await prisma.user.update({
             where: {
                 id: idNumber

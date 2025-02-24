@@ -1,11 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
 
-export const validateJWT = async(req: Request, res: Response, next: NextFunction) => {
+const prisma = new PrismaClient();
+export const validateJWT = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.header('auth-token') || '';
-    if(!token){
+    if (!token) {
         return res.status(401).json({
-            msg: 'Non-Authenticated'
+            msg: 'No Autenticado'
         })
     }
     try {
@@ -14,27 +16,32 @@ export const validateJWT = async(req: Request, res: Response, next: NextFunction
     } catch (error) {
         console.log(error);
         return res.status(401).json({
-            msg: 'Invalid token'
-        }) 
+            msg: 'Token inválido'
+        })
     }
 }
 
-export const validateAuthStatus = async(req: Request, res: Response, next: NextFunction) => {
+export const validateAuthStatus = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.header('auth-token') || '';
-    if(!token){
+    if (!token) {
         return res.status(401).json({
-            msg: 'Non-Authenticated'
+            msg: 'No Autenticado'
         })
     }
     try {
-        jwt.verify(token, process.env.SECRETKEY || '');
+        const validateToken = jwt.verify(token, process.env.SECRETKEY || '');
+
+        if (!validateToken) return res.status(400).json({ msg: 'Token inválido', error: true, records: 0, data: [] });
+
+        const registeredUser = await prisma.user.findUnique({ where: { email: validateToken } });
         return res.status(200).json({
-            msg: 'Authenticated'
+            msg: 'Autenticado',
+            user: registeredUser
         })
     } catch (error) {
         console.log(error);
         return res.status(401).json({
-            msg: 'Invalid token'
-        }) 
+            msg: 'Token inválido'
+        })
     }
 }
