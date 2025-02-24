@@ -322,7 +322,6 @@ const sendEmailPayment = (req, res) => __awaiter(void 0, void 0, void 0, functio
 exports.sendEmailPayment = sendEmailPayment;
 const mailPayment = (userId, totalAmount) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(userId + ", trasero: " + totalAmount);
         const idUser = userId;
         const finalAmount = totalAmount;
         if (!idUser && !finalAmount) {

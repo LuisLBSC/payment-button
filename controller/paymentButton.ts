@@ -384,7 +384,6 @@ export const sendEmailPayment = async (req: Request, res: Response) => {
 
 export const mailPayment = async (userId?: number, totalAmount?: number) => {
     try {
-        console.log(userId+ ", trasero: "+ totalAmount);
         const idUser = userId;
         const finalAmount = totalAmount;
         if (!idUser && !finalAmount) {
