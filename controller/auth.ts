@@ -213,9 +213,35 @@ export const signUp = async (req: Request, res: Response) => {
         
         if (!username || !password) return res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
 
-        const existingUser = await prisma.user.findFirst({ where: { username: username, active: 1 } });
+        const existingUserByUsername = await prisma.user.findFirst({
+            where: { username: username, active: 1 }
+        });
 
-        if (existingUser) return res.status(409).json({ msg: 'Usuario ya existe', error: true, data: [] });
+        const existingUserByEmail = await prisma.user.findFirst({
+            where: { email: email, active: 1 }
+        });
+
+        if (existingUserByUsername && existingUserByEmail) {
+            return res.status(409).json({
+                msg: 'Ya existe un usuario con ese username y ese email',
+                error: true,
+                data: []
+            });
+
+        } else if (existingUserByUsername) {
+            return res.status(409).json({
+                msg: 'Ya existe un usuario con ese username',
+                error: true,
+                data: []
+            });
+            
+        } else if (existingUserByEmail) {
+            return res.status(409).json({
+                msg: 'Ya existe un usuario con ese email',
+                error: true,
+                data: []
+            });
+        }
 
         const encryptedPassword = await encryptPassword(password);
 
