@@ -234,7 +234,7 @@ export const signUp = async (req: Request, res: Response) => {
                 error: true,
                 data: []
             });
-            
+
         } else if (existingUserByEmail) {
             return res.status(409).json({
                 msg: 'Ya existe un usuario con ese email',
@@ -271,8 +271,8 @@ export const signUp = async (req: Request, res: Response) => {
         const titleEmail = await prisma.param.findUnique({ where: { key: 'SIGNUP_TITLE_EMAIL' } }) || '';
         const htmlEmail = await prisma.param.findUnique({ where: { key: 'SIGNUP_HTML_EMAIL' } }) || '';
         const htmlEmailReplaced = htmlEmail.value.replace(
-            /\${process\.env\.BASE_URL}/g,
-            process.env.BASE_URL
+            /\${process\.env\.FRONT_URL}/g,
+            process.env.FRONT_URL
         ).replace(
             /\${verifiedToken}/g,
             verifiedToken

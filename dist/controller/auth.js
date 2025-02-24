@@ -252,7 +252,7 @@ const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const fromEmail = (yield prisma.param.findUnique({ where: { key: 'zimbra_user' } })) || '';
         const titleEmail = (yield prisma.param.findUnique({ where: { key: 'SIGNUP_TITLE_EMAIL' } })) || '';
         const htmlEmail = (yield prisma.param.findUnique({ where: { key: 'SIGNUP_HTML_EMAIL' } })) || '';
-        const htmlEmailReplaced = htmlEmail.value.replace(/\${process\.env\.BASE_URL}/g, process.env.BASE_URL).replace(/\${verifiedToken}/g, verifiedToken);
+        const htmlEmailReplaced = htmlEmail.value.replace(/\${process\.env\.FRONT_URL}/g, process.env.FRONT_URL).replace(/\${verifiedToken}/g, verifiedToken);
         if (fromEmail && newUser.email && htmlEmailReplaced && titleEmail)
             (0, mail_1.sendEmail)(fromEmail.value || '', newUser.email, '', htmlEmailReplaced, titleEmail.value, 'Info');
         return res.json({

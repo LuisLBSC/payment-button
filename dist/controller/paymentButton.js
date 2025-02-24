@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.savePaymentWithCheckoutId = exports.requestCheckout = void 0;
+exports.sendEmailPayment = exports.savePaymentWithCheckoutId = exports.requestCheckout = void 0;
 const client_1 = require("@prisma/client");
 const axios_1 = __importDefault(require("axios"));
 const querystring_1 = __importDefault(require("querystring"));
+const mail_1 = require("./mail");
 const prisma = new client_1.PrismaClient();
 const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -231,6 +232,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                 return payment;
             }));
             const payments = yield Promise.all(paymentPromises);
+            (0, exports.sendEmailPayment)(customer.email, data.amount);
             return res.status(200).json({
                 msg: 'ok',
                 error: false,
@@ -291,4 +293,36 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.savePaymentWithCheckoutId = savePaymentWithCheckoutId;
+const sendEmailPayment = (req, res, email, totalAmount) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const finalEmail = email || req.body.email;
+        const finalAmount = totalAmount || req.body.totalAmount;
+        if (!finalEmail && !finalAmount) {
+            return res.status(400).json({
+                msg: "Se requiere email y monto",
+                error: true,
+                data: []
+            });
+        }
+        const fromEmail = (yield prisma.param.findUnique({ where: { key: 'zimbra_user' } })) || '';
+        const htmlEmail = (yield prisma.param.findUnique({ where: { key: 'PAYMENT_HTML_EMAIL' } })) || '';
+        const titleEmail = (yield prisma.param.findUnique({ where: { key: 'PAYMENT_TITLE_EMAIL' } })) || '';
+        const htmlEmailReplaced = htmlEmail.value.replace(/\${totalAmount}/g, finalAmount);
+        if (fromEmail && email && htmlEmailReplaced && finalEmail)
+            (0, mail_1.sendEmail)(fromEmail.value || '', finalEmail, '', htmlEmailReplaced, titleEmail.value, 'Info');
+        return res.json({
+            msg: `Correo de pago enviado correctamente`,
+            error: false
+        });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'Somenthing went wrong',
+            error: error,
+            data: []
+        });
+    }
+});
+exports.sendEmailPayment = sendEmailPayment;
 //# sourceMappingURL=paymentButton.js.map

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {requestCheckout, savePaymentWithCheckoutId}  from "../controller/paymentButton";
+import {requestCheckout, savePaymentWithCheckoutId, sendEmailPayment}  from "../controller/paymentButton";
 import { validateJWT } from "../middlewares/validate-jwt";
 import { check } from "express-validator";
 import { validateFields } from "../middlewares/validate-fields";
@@ -20,5 +20,7 @@ router.post('/savePayment',
     ],
     validateJWT,
     savePaymentWithCheckoutId);
-
+router.post('/sendEmailPayment',
+    validateJWT,
+    sendEmailPayment);
 export default router;

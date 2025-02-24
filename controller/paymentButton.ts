@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import e, { Request, Response } from "express";
 import axios from 'axios';
 import querystring from 'querystring';
+import { sendEmail } from "./mail";
 
 const prisma = new PrismaClient();
 
@@ -62,7 +63,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             return acc;
         }, {} as { [key: string]: string | undefined });
 
-        const { entityId, token, mid, tid, currency, mid_risk, percent_tax, base0  } = paramsMap;
+        const { entityId, token, mid, tid, currency, mid_risk, percent_tax, base0 } = paramsMap;
         const missingParams: string[] = [];
         if (!entityId) missingParams.push('entityId');
         if (!token) missingParams.push('token');
@@ -83,12 +84,12 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         const percentTax = typeof percent_tax === 'string' ? parseFloat(percent_tax) : percent_tax ?? 0;
         const base_0 = typeof base0 === 'string' ? parseFloat(base0) : base0 ?? 0;
         const transaction = `transaction#${Date.now()}`;
-        
+
         let itemIndex = 0;
         let total = 0;
         let cartItems: { [key: string]: string } = {};
         let valueNoTax = 0;
-        let valueTax = 0; 
+        let valueTax = 0;
         debts.forEach(debt => {
             const tax = debt.totalAmount * percentTax;
             const debtNoTax = debt.totalAmount - tax;
@@ -128,7 +129,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_ECI]': '0103910',
             'customParameters[SHOPPER_PSERV]': '17913101',
             'customParameters[SHOPPER_VAL_BASE0]': 1,
-            'customParameters[SHOPPER_VAL_BASEIMP]': (valueNoTax-1).toFixed(2),
+            'customParameters[SHOPPER_VAL_BASEIMP]': (valueNoTax - 1).toFixed(2),
             'customParameters[SHOPPER_VAL_IVA]': valueTax.toFixed(2),
             'customParameters[SHOPPER_VERSIONDF]': '2',
             'testMode': 'EXTERNAL',
@@ -148,7 +149,7 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             }
         );
 
-        if (data.id) {  
+        if (data.id) {
 
             return res.status(200).json({
                 msg: 'ok',
@@ -211,7 +212,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                 error: true,
             });
         }
-        
+
         const params = { entityId };
 
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}/${checkoutId}/payment?entityId=${entityId}`;
@@ -229,7 +230,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
         const { card, result, resultDetails, cart, customer, customParameters } = data;
         if (!resultDetails.ExtendedDescription.includes("Transaccion rechazada")) {
             transactionState = 'PROCESADO';
-                        
+
             const newTransaction = await prisma.transaction.upsert({
                 create: {
                     type: data.paymentType,
@@ -263,7 +264,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     totalAmount: parseFloat(data.amount),
                     jsonResponse: JSON.stringify(data)
                 },
-                where: {trxId: data.id}
+                where: { trxId: data.id }
             });
 
             const paymentPromises = cart.items.map(async (item: any) => {
@@ -271,7 +272,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     data: {
                         customerId: parseInt(customer.merchantCustomerId),
                         cashier: 30,
-                        debtId: 3, 
+                        debtId: 3,
                         ipSession: customer.ip,
                         cardNumber: `${card.bin}XXXXXX${card.last4Digits}`,
                         cardExpirationDate: `${card.expiryMonth}/${card.expiryYear}`,
@@ -291,6 +292,8 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
             });
 
             const payments = await Promise.all(paymentPromises);
+
+            sendEmailPayment(customer.email, data.amount);
             return res.status(200).json({
                 msg: 'ok',
                 error: false,
@@ -332,7 +335,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     totalAmount: parseFloat(data.amount),
                     jsonResponse: JSON.stringify(data)
                 },
-                where: {trxId: data.id}
+                where: { trxId: data.id }
             });
             return res.status(404).json({
                 msg: `Pago fallido: ${data.result.description}`,
@@ -349,3 +352,45 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
         });
     }
 };
+
+
+export const sendEmailPayment = async (
+    req: Request,
+    res: Response,
+    email?: String,
+    totalAmount?: number) => {
+    try {
+        const finalEmail = email || req.body.email;
+        const finalAmount = totalAmount || req.body.totalAmount;
+        if (!finalEmail && !finalAmount) {
+            return res.status(400).json({
+                msg: "Se requiere email y monto",
+                error: true,
+                data: []
+            });
+        }
+        const fromEmail = await prisma.param.findUnique({ where: { key: 'zimbra_user' } }) || '';
+        const htmlEmail = await prisma.param.findUnique({ where: { key: 'PAYMENT_HTML_EMAIL' } }) || '';
+        const titleEmail = await prisma.param.findUnique({ where: { key: 'PAYMENT_TITLE_EMAIL' } }) || '';
+
+        const htmlEmailReplaced = htmlEmail.value.replace(
+            /\${totalAmount}/g,
+            finalAmount
+        );
+        if (fromEmail && email && htmlEmailReplaced && finalEmail)
+            sendEmail(fromEmail.value || '', finalEmail, '', htmlEmailReplaced, titleEmail.value, 'Info');
+
+        return res.json({
+            msg: `Correo de pago enviado correctamente`,
+            error: false
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'Somenthing went wrong',
+            error: error,
+            data: []
+
+        });
+    }
+}

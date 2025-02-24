@@ -15,5 +15,6 @@ router.post('/savePayment', [
     (0, express_validator_1.check)('checkoutId', 'checkoutId is required').not().isEmpty(),
     validate_fields_1.validateFields
 ], validate_jwt_1.validateJWT, paymentButton_1.savePaymentWithCheckoutId);
+router.post('/sendEmailPayment', validate_jwt_1.validateJWT, paymentButton_1.sendEmailPayment);
 exports.default = router;
 //# sourceMappingURL=paymentButton.js.map
