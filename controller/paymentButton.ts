@@ -293,7 +293,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
 
             const payments = await Promise.all(paymentPromises);
 
-            sendEmailPayment(customer.email, data.amount);
+            sendEmailPayment(customer.merchantCustomerId, data.amount);
             return res.status(200).json({
                 msg: 'ok',
                 error: false,
@@ -357,18 +357,19 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
 export const sendEmailPayment = async (
     req: Request,
     res: Response,
-    email?: String,
+    userId?: number,
     totalAmount?: number) => {
     try {
-        const finalEmail = email || req.body.email;
+        const idUser = userId || req.body.userId;
         const finalAmount = totalAmount || req.body.totalAmount;
-        if (!finalEmail && !finalAmount) {
+        if (!idUser && !finalAmount) {
             return res.status(400).json({
                 msg: "Se requiere email y monto",
                 error: true,
                 data: []
             });
         }
+        const existingUser = await prisma.user.findFirst({ where: { id: userId} });
         const fromEmail = await prisma.param.findUnique({ where: { key: 'zimbra_user' } }) || '';
         const htmlEmail = await prisma.param.findUnique({ where: { key: 'PAYMENT_HTML_EMAIL' } }) || '';
         const titleEmail = await prisma.param.findUnique({ where: { key: 'PAYMENT_TITLE_EMAIL' } }) || '';
@@ -377,8 +378,8 @@ export const sendEmailPayment = async (
             /\${totalAmount}/g,
             finalAmount
         );
-        if (fromEmail && email && htmlEmailReplaced && finalEmail)
-            sendEmail(fromEmail.value || '', finalEmail, '', htmlEmailReplaced, titleEmail.value, 'Info');
+        if (fromEmail && existingUser && htmlEmailReplaced && existingUser)
+            sendEmail(fromEmail.value || '', existingUser.email, '', htmlEmailReplaced, titleEmail.value, 'Info');
 
         return res.json({
             msg: `Correo de pago enviado correctamente`,
