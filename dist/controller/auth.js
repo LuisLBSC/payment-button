@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -185,7 +196,10 @@ exports.resetPassword = resetPassword;
 const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log(req.body);
-        const { username, password, email, name, middlename, lastname, phone, address, country, postCode, profileId } = req.body;
+        const defaultProfile = yield prisma.profile.findFirst({
+            where: { name: "CUSTOMER" }
+        });
+        const { username, password, email, name, middlename, lastname, phone, address, country, postCode } = req.body;
         if (!username || !password)
             return res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
         const existingUser = yield prisma.user.findFirst({ where: { username: username, active: 1 } });
@@ -207,9 +221,10 @@ const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 postCode,
                 verifiedToken,
                 active: 1,
-                profileId
+                profileId: defaultProfile === null || defaultProfile === void 0 ? void 0 : defaultProfile.id
             }
         });
+        const { password: _ } = newUser, userWithoutPassword = __rest(newUser, ["password"]);
         const fromEmail = (yield prisma.param.findUnique({ where: { key: 'zimbra_user' } })) || '';
         const titleEmail = (yield prisma.param.findUnique({ where: { key: 'SIGNUP_TITLE_EMAIL' } })) || '';
         const htmlEmail = (yield prisma.param.findUnique({ where: { key: 'SIGNUP_HTML_EMAIL' } })) || '';
@@ -220,7 +235,7 @@ const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             msg: `Usuario: ${newUser.username} registrado`,
             error: false,
             records: 1,
-            data: newUser
+            data: userWithoutPassword
         });
     }
     catch (error) {
@@ -252,8 +267,9 @@ const verifyAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 verifiedToken: null
             }
         });
+        const { password: _ } = verifiedUser, userWithoutPassword = __rest(verifiedUser, ["password"]);
         res.status(200).json({
-            verifiedUser,
+            userWithoutPassword,
             msg: `Usuario ${verifiedUser.username} verificado`,
             error: false,
             records: 1

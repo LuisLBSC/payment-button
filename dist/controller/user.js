@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUserById = exports.updateUserById = exports.saveUser = exports.getUserByUsername = exports.getUserById = exports.getAllUsers = void 0;
 const client_1 = require("@prisma/client");
@@ -16,11 +27,15 @@ const prisma = new client_1.PrismaClient();
 const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const users = yield prisma.user.findMany({ where: { active: 1 } });
+        const usersWithoutPassword = users.map(user => {
+            const { password } = user, userWithoutPassword = __rest(user, ["password"]);
+            return userWithoutPassword;
+        });
         res.json({
             msg: 'ok',
             error: false,
-            records: users.length,
-            data: users
+            records: usersWithoutPassword.length,
+            data: usersWithoutPassword
         });
     }
     catch (error) {
@@ -42,11 +57,12 @@ const getUserById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         if (!existingUser)
             res.status(404).json({ msg: 'Usuario no encontrado', error: false, data: [] });
         else {
+            const { password } = existingUser, userWithoutPassword = __rest(existingUser, ["password"]);
             res.json({
                 msg: 'ok',
                 error: false,
                 records: 1,
-                data: existingUser
+                data: userWithoutPassword
             });
         }
     }
@@ -70,11 +86,12 @@ const getUserByUsername = (req, res) => __awaiter(void 0, void 0, void 0, functi
             res.status(404).json({ msg: 'Usuario no encontrado', error: false, data: [] });
         }
         else {
+            const { password } = existingUser, userWithoutPassword = __rest(existingUser, ["password"]);
             res.json({
                 msg: 'ok',
                 error: false,
                 records: 1,
-                data: existingUser
+                data: userWithoutPassword
             });
         }
     }
@@ -122,15 +139,16 @@ const saveUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
             where: { username }
         });
+        const { password: _ } = newUser, userWithoutPassword = __rest(newUser, ["password"]);
         res.json({
-            newUser,
+            userWithoutPassword,
             msg: `Usuario ${newUser.username} creado`
         });
     }
     catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Somenthing went wrong',
+            msg: 'Ha ocurrido un error al crear el usuario: ',
             error
         });
     }
@@ -178,8 +196,9 @@ const updateUserById = (req, res) => __awaiter(void 0, void 0, void 0, function*
             },
             data: updateData
         });
+        const { password: _ } = updatedUser, userWithoutPassword = __rest(updatedUser, ["password"]);
         res.status(200).json({
-            updatedUser,
+            userWithoutPassword,
             msg: `Usuario ${updatedUser.username} actualizado`,
             error: false,
             records: 1
@@ -200,12 +219,9 @@ const deleteUserById = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber))
             res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
-        yield prisma.user.update({
+        yield prisma.user.delete({
             where: {
                 id: idNumber
-            },
-            data: {
-                active: 0
             }
         });
         res.status(200).json({

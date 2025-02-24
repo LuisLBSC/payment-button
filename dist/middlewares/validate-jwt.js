@@ -14,11 +14,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateAuthStatus = exports.validateJWT = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
 const validateJWT = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const token = req.header('auth-token') || '';
     if (!token) {
         return res.status(401).json({
-            msg: 'Non-Authenticated'
+            msg: 'No Autenticado'
         });
     }
     try {
@@ -28,7 +30,7 @@ const validateJWT = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         console.log(error);
         return res.status(401).json({
-            msg: 'Invalid token'
+            msg: 'Token inválido'
         });
     }
 });
@@ -37,19 +39,23 @@ const validateAuthStatus = (req, res, next) => __awaiter(void 0, void 0, void 0,
     const token = req.header('auth-token') || '';
     if (!token) {
         return res.status(401).json({
-            msg: 'Non-Authenticated'
+            msg: 'No Autenticado'
         });
     }
     try {
-        jsonwebtoken_1.default.verify(token, process.env.SECRETKEY || '');
+        const validateToken = jsonwebtoken_1.default.verify(token, process.env.SECRETKEY || '');
+        if (!validateToken)
+            return res.status(400).json({ msg: 'Token inválido', error: true, records: 0, data: [] });
+        const registeredUser = yield prisma.user.findUnique({ where: { email: validateToken } });
         return res.status(200).json({
-            msg: 'Authenticated'
+            msg: 'Autenticado',
+            user: registeredUser
         });
     }
     catch (error) {
         console.log(error);
         return res.status(401).json({
-            msg: 'Invalid token'
+            msg: 'Token inválido'
         });
     }
 });
