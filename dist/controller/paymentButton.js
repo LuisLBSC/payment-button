@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendEmailPayment = exports.savePaymentWithCheckoutId = exports.requestCheckout = void 0;
+exports.mailPayment = exports.sendEmailPayment = exports.savePaymentWithCheckoutId = exports.requestCheckout = void 0;
 const client_1 = require("@prisma/client");
 const axios_1 = __importDefault(require("axios"));
 const querystring_1 = __importDefault(require("querystring"));
@@ -232,7 +232,7 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                 return payment;
             }));
             const payments = yield Promise.all(paymentPromises);
-            (0, exports.sendEmailPayment)(customer.merchantCustomerId, data.amount);
+            (0, exports.mailPayment)(parseInt(customer.merchantCustomerId), data.amount);
             return res.status(200).json({
                 msg: 'ok',
                 error: false,
@@ -293,24 +293,18 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.savePaymentWithCheckoutId = savePaymentWithCheckoutId;
-const sendEmailPayment = (req, res, userId, totalAmount) => __awaiter(void 0, void 0, void 0, function* () {
+const sendEmailPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const idUser = userId || req.body.userId;
-        const finalAmount = totalAmount || req.body.totalAmount;
-        if (!idUser && !finalAmount) {
+        const idUser = req.body.userId;
+        const amount = req.body.totalAmount;
+        if (!idUser && !amount) {
             return res.status(400).json({
                 msg: "Se requiere email y monto",
                 error: true,
                 data: []
             });
         }
-        const existingUser = yield prisma.user.findFirst({ where: { id: userId } });
-        const fromEmail = (yield prisma.param.findUnique({ where: { key: 'zimbra_user' } })) || '';
-        const htmlEmail = (yield prisma.param.findUnique({ where: { key: 'PAYMENT_HTML_EMAIL' } })) || '';
-        const titleEmail = (yield prisma.param.findUnique({ where: { key: 'PAYMENT_TITLE_EMAIL' } })) || '';
-        const htmlEmailReplaced = htmlEmail.value.replace(/\${totalAmount}/g, finalAmount);
-        if (fromEmail && existingUser && htmlEmailReplaced && existingUser)
-            (0, mail_1.sendEmail)(fromEmail.value || '', existingUser.email, '', htmlEmailReplaced, titleEmail.value, 'Info');
+        (0, exports.mailPayment)(idUser, amount);
         return res.json({
             msg: `Correo de pago enviado correctamente`,
             error: false
@@ -326,4 +320,37 @@ const sendEmailPayment = (req, res, userId, totalAmount) => __awaiter(void 0, vo
     }
 });
 exports.sendEmailPayment = sendEmailPayment;
+const mailPayment = (userId, totalAmount) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log(userId + ", trasero: " + totalAmount);
+        const idUser = userId;
+        const finalAmount = totalAmount;
+        if (!idUser && !finalAmount) {
+            console.debug({
+                msg: "Se requiere email y monto",
+                error: true,
+                data: []
+            });
+        }
+        const existingUser = yield prisma.user.findFirst({ where: { id: userId } });
+        const fromEmail = (yield prisma.param.findUnique({ where: { key: 'zimbra_user' } })) || '';
+        const htmlEmail = (yield prisma.param.findUnique({ where: { key: 'PAYMENT_HTML_EMAIL' } })) || '';
+        const titleEmail = (yield prisma.param.findUnique({ where: { key: 'PAYMENT_TITLE_EMAIL' } })) || '';
+        const htmlEmailReplaced = htmlEmail.value.replace(/\${totalAmount}/g, finalAmount);
+        if (fromEmail && existingUser && htmlEmailReplaced && existingUser)
+            (0, mail_1.sendEmail)(fromEmail.value || '', existingUser.email, '', htmlEmailReplaced, titleEmail.value, 'Info');
+        console.debug({
+            msg: `Correo de pago enviado correctamente`,
+            error: false
+        });
+    }
+    catch (error) {
+        console.debug({
+            msg: 'Somenthing went wrong',
+            error: error,
+            data: []
+        });
+    }
+});
+exports.mailPayment = mailPayment;
 //# sourceMappingURL=paymentButton.js.map

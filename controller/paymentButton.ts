@@ -293,7 +293,7 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
 
             const payments = await Promise.all(paymentPromises);
 
-            sendEmailPayment(customer.merchantCustomerId, data.amount);
+            mailPayment(parseInt(customer.merchantCustomerId), data.amount);
             return res.status(200).json({
                 msg: 'ok',
                 error: false,
@@ -354,16 +354,41 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
 };
 
 
-export const sendEmailPayment = async (
-    req: Request,
-    res: Response,
-    userId?: number,
-    totalAmount?: number) => {
+export const sendEmailPayment = async (req: Request, res: Response) => {
     try {
-        const idUser = userId || req.body.userId;
-        const finalAmount = totalAmount || req.body.totalAmount;
-        if (!idUser && !finalAmount) {
+        const idUser = req.body.userId;
+        const amount = req.body.totalAmount;
+        if (!idUser && !amount) {
             return res.status(400).json({
+                msg: "Se requiere email y monto",
+                error: true,
+                data: []
+            });
+        }
+        mailPayment(idUser, amount);
+
+        return res.json({
+            msg: `Correo de pago enviado correctamente`,
+            error: false
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: 'Somenthing went wrong',
+            error: error,
+            data: []
+
+        });
+    }
+}
+
+export const mailPayment = async (userId?: number, totalAmount?: number) => {
+    try {
+        console.log(userId+ ", trasero: "+ totalAmount);
+        const idUser = userId;
+        const finalAmount = totalAmount;
+        if (!idUser && !finalAmount) {
+            console.debug({
                 msg: "Se requiere email y monto",
                 error: true,
                 data: []
@@ -381,13 +406,12 @@ export const sendEmailPayment = async (
         if (fromEmail && existingUser && htmlEmailReplaced && existingUser)
             sendEmail(fromEmail.value || '', existingUser.email, '', htmlEmailReplaced, titleEmail.value, 'Info');
 
-        return res.json({
+        console.debug({
             msg: `Correo de pago enviado correctamente`,
             error: false
         });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({
+        console.debug({
             msg: 'Somenthing went wrong',
             error: error,
             data: []
