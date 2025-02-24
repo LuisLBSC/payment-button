@@ -35,11 +35,19 @@ export const getAllPaymentsByUser = async(req: Request, res: Response) => {
             filters.customerId = user.id;
         }
 
-        if(dateStart || dateEnd){
+        if(!dateStart || !dateEnd){
+            const threeDaysAgo = new Date();
+            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+            filters.createdAt = {
+                gte: threeDaysAgo,
+                lte: new Date()
+            };
+        }else {
             filters.createdAt = {};
-            if(dateStart) filters.createdAt.gte = new Date(dateStart);
-            if(dateEnd) filters.createdAt.lte = new Date(dateEnd);
+            if (dateStart) filters.createdAt.gte = new Date(dateStart as string);
+            if (dateEnd) filters.createdAt.lte = new Date(dateEnd as string);
         }
+
         if (lot || state || type) {
             filters.transaction = {};
             if (lot) filters.transaction.lot = { contains: lot, mode: 'insensitive' };
@@ -47,7 +55,11 @@ export const getAllPaymentsByUser = async(req: Request, res: Response) => {
             if (type) filters.transaction.type = { contains: type, mode: 'insensitive' };
         }
 
-        const payments = await prisma.payment.findMany({where: filters, include: { debt: true, transaction: true  }});
+        const payments = await prisma.payment.findMany({
+            where: filters, 
+            include: { debt: true, transaction: true },
+            orderBy: { createdAt: 'desc' }
+        });
         res.json({
             msg: 'ok',
             error: false,

@@ -32,7 +32,15 @@ const getAllPaymentsByUser = (req, res) => __awaiter(void 0, void 0, void 0, fun
         if (!isAdmin) {
             filters.customerId = user.id;
         }
-        if (dateStart || dateEnd) {
+        if (!dateStart || !dateEnd) {
+            const threeDaysAgo = new Date();
+            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+            filters.createdAt = {
+                gte: threeDaysAgo,
+                lte: new Date()
+            };
+        }
+        else {
             filters.createdAt = {};
             if (dateStart)
                 filters.createdAt.gte = new Date(dateStart);
@@ -48,7 +56,11 @@ const getAllPaymentsByUser = (req, res) => __awaiter(void 0, void 0, void 0, fun
             if (type)
                 filters.transaction.type = { contains: type, mode: 'insensitive' };
         }
-        const payments = yield prisma.payment.findMany({ where: filters, include: { debt: true, transaction: true } });
+        const payments = yield prisma.payment.findMany({
+            where: filters,
+            include: { debt: true, transaction: true },
+            orderBy: { createdAt: 'desc' }
+        });
         res.json({
             msg: 'ok',
             error: false,
