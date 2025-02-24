@@ -239,6 +239,8 @@ export const signUp = async (req: Request, res: Response) => {
             }
         });
 
+        const { password: _, ...userWithoutPassword } = newUser;
+
         const fromEmail = await prisma.param.findUnique({ where: { key: 'zimbra_user' } }) || '';
         const titleEmail = await prisma.param.findUnique({ where: { key: 'SIGNUP_TITLE_EMAIL' } }) || '';
         const htmlEmail = await prisma.param.findUnique({ where: { key: 'SIGNUP_HTML_EMAIL' } }) || '';
@@ -256,7 +258,7 @@ export const signUp = async (req: Request, res: Response) => {
             msg: `Usuario: ${newUser.username} registrado`,
             error: false,
             records: 1,
-            data: newUser
+            data: userWithoutPassword
         });
     } catch (error) {
         console.log(error);
@@ -290,8 +292,10 @@ export const verifyAccount = async (req: Request, res: Response) => {
             }
         });
 
+        const { password: _, ...userWithoutPassword } = verifiedUser;
+
         res.status(200).json({
-            verifiedUser,
+            userWithoutPassword,
             msg: `Usuario ${verifiedUser.username} verificado`,
             error: false,
             records: 1

@@ -45,7 +45,6 @@ router.post('/signUp',
     check('username', 'Username is required').not().isEmpty(),
     check('password', 'Password is required').not().isEmpty(),
     check('email', 'Email is required').not().isEmpty(),
-    check('profileId', 'ProfileId is required').not().isEmpty(),
     validateFields as ()=>void,
     signUp as any
 )

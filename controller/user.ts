@@ -6,11 +6,16 @@ const prisma = new PrismaClient();
 export const getAllUsers = async(req: Request, res: Response) => {
     try {
         const users = await prisma.user.findMany({where: {active : 1}});
+
+        const usersWithoutPassword = users.map(user => {
+            const { password, ...userWithoutPassword } = user;
+            return userWithoutPassword;
+        });
         res.json({
             msg: 'ok',
             error: false,
-            records: users.length,
-            data: users
+            records: usersWithoutPassword.length,
+            data: usersWithoutPassword
         });
     } catch (error) {
         console.log(error);
@@ -32,11 +37,13 @@ export const getUserById = async(req: Request, res: Response) => {
         if(!existingUser)
             res.status(404).json({msg: 'Usuario no encontrado', error: false, data:[]});
         else{
+            const { password, ...userWithoutPassword } = existingUser;
+
             res.json({
                 msg: 'ok',
                 error: false,
                 records: 1,
-                data: existingUser
+                data: userWithoutPassword
             });
         }
         
@@ -62,11 +69,13 @@ export const getUserByUsername = async(req: Request, res: Response) => {
             res.status(404).json({msg: 'Usuario no encontrado', error: false, data:[]});
         }
         else{
+            const { password, ...userWithoutPassword } = existingUser
+
             res.json({
                 msg: 'ok',
                 error: false,
                 records: 1,
-                data: existingUser
+                data: userWithoutPassword
             });
         }
         
@@ -126,14 +135,17 @@ export const saveUser = async(req: Request, res: Response) => {
                 active: 1},
             where: {username}
         });
+
+        const { password: _, ...userWithoutPassword } = newUser;
+
         res.json({
-            newUser,
+            userWithoutPassword,
             msg: `Usuario ${newUser.username} creado`
         });
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            msg: 'Somenthing went wrong',
+            msg: 'Ha ocurrido un error al crear el usuario: ',
             error
         });
     }
@@ -188,8 +200,10 @@ export const updateUserById = async(req: Request, res: Response) => {
             data: updateData
         });
 
+        const { password: _, ...userWithoutPassword } = updatedUser;
+
         res.status(200).json({
-            updatedUser,
+            userWithoutPassword,
             msg: `Usuario ${updatedUser.username} actualizado`,
             error: false,
             records: 1
@@ -210,12 +224,9 @@ export const deleteUserById = async(req: Request, res: Response) => {
         const idNumber = parseInt(id, 10);
         if (!id || isNaN(idNumber)) res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
 
-        await prisma.user.update({
+        await prisma.user.delete({
             where: {
                 id: idNumber
-            },
-            data: {
-                active: 0
             }
         });
         
