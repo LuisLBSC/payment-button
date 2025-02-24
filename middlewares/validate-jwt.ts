@@ -33,7 +33,7 @@ export const validateAuthStatus = async (req: Request, res: Response, next: Next
 
         if (!validateToken) return res.status(400).json({ msg: 'Token inválido', error: true, records: 0, data: [] });
 
-        const registeredUser = await prisma.user.findUnique({ where: { email: validateToken } });
+        const registeredUser = await prisma.user.findUnique({ where: { id: validateToken.id } });
         return res.status(200).json({
             msg: 'Autenticado',
             user: registeredUser
