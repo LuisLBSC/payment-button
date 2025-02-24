@@ -193,6 +193,11 @@ export const resetPassword = async (req: Request, res: Response) => {
 export const signUp = async (req: Request, res: Response) => {
     try {
         console.log(req.body);
+
+        const defaultProfile = await prisma.profile.findFirst({
+            where: { name: "CUSTOMER" }
+        });
+
         const {
             username,
             password,
@@ -203,9 +208,9 @@ export const signUp = async (req: Request, res: Response) => {
             phone,
             address,
             country,
-            postCode,
-            profileId
+            postCode
         } = req.body;
+        
         if (!username || !password) return res.status(400).json({ msg: 'Bad request', error: true, records: 0, data: [] });
 
         const existingUser = await prisma.user.findFirst({ where: { username: username, active: 1 } });
@@ -230,7 +235,7 @@ export const signUp = async (req: Request, res: Response) => {
                 postCode,
                 verifiedToken,
                 active: 1,
-                profileId
+                profileId: defaultProfile?.id
             }
         });
 
