@@ -151,3 +151,17 @@ model Entity {
   id          Int          @id @default(autoincrement())
   RoleEntity  RoleEntity[]
 }
+
+model EmailLog {
+  id              Int      @id @default(autoincrement())
+  entityDescription String  
+  recordId      Int 
+  sent            Int      @default(0)
+  email           String?
+  error           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([entityDescription, recordId])
+  @@unique([entityDescription, recordId])
+}

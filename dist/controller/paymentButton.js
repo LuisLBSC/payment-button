@@ -232,7 +232,24 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                 return payment;
             }));
             const payments = yield Promise.all(paymentPromises);
-            (0, exports.mailPayment)(parseInt(customer.merchantCustomerId), data.amount);
+            const emailLog = yield prisma.emailLog.upsert({
+                create: {
+                    entityDescription: "Transaction",
+                    recordId: newTransaction.id,
+                    sent: 0,
+                    createdAt: new Date(),
+                },
+                update: {
+                    sent: 0
+                },
+                where: {
+                    entityDescription_recordId: {
+                        entityDescription: "Transaction",
+                        recordId: newTransaction.id,
+                    }
+                }
+            });
+            (0, exports.mailPayment)(parseInt(customer.merchantCustomerId), data.amount, emailLog.id);
             return res.status(200).json({
                 msg: 'ok',
                 error: false,
@@ -297,14 +314,15 @@ const sendEmailPayment = (req, res) => __awaiter(void 0, void 0, void 0, functio
     try {
         const idUser = req.body.userId;
         const amount = req.body.totalAmount;
-        if (!idUser && !amount) {
+        const recordId = parseInt(req.body.recordId);
+        if (!idUser && !amount && !recordId) {
             return res.status(400).json({
-                msg: "Se requiere email y monto",
+                msg: "Se requiere email, monto y registroId",
                 error: true,
                 data: []
             });
         }
-        (0, exports.mailPayment)(idUser, amount);
+        (0, exports.mailPayment)(idUser, amount, recordId);
         return res.json({
             msg: `Correo de pago enviado correctamente`,
             error: false
@@ -320,13 +338,14 @@ const sendEmailPayment = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.sendEmailPayment = sendEmailPayment;
-const mailPayment = (userId, totalAmount) => __awaiter(void 0, void 0, void 0, function* () {
+const mailPayment = (userId, totalAmount, recordIdIn) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const idUser = userId;
         const finalAmount = totalAmount;
-        if (!idUser && !finalAmount) {
+        const recordId = recordIdIn;
+        if (!idUser && !finalAmount && !recordId) {
             console.debug({
-                msg: "Se requiere email y monto",
+                msg: "Se requiere email, monto y registroId",
                 error: true,
                 data: []
             });
@@ -336,8 +355,19 @@ const mailPayment = (userId, totalAmount) => __awaiter(void 0, void 0, void 0, f
         const htmlEmail = (yield prisma.param.findUnique({ where: { key: 'PAYMENT_HTML_EMAIL' } })) || '';
         const titleEmail = (yield prisma.param.findUnique({ where: { key: 'PAYMENT_TITLE_EMAIL' } })) || '';
         const htmlEmailReplaced = htmlEmail.value.replace(/\${totalAmount}/g, finalAmount);
-        if (fromEmail && existingUser && htmlEmailReplaced && existingUser)
+        if (fromEmail && existingUser && htmlEmailReplaced && existingUser) {
             (0, mail_1.sendEmail)(fromEmail.value || '', existingUser.email, '', htmlEmailReplaced, titleEmail.value, 'Info');
+            yield prisma.emailLog.update({
+                data: {
+                    sent: 1,
+                    email: existingUser.email,
+                    updatedAt: new Date(),
+                },
+                where: {
+                    id: recordId
+                }
+            });
+        }
         console.debug({
             msg: `Correo de pago enviado correctamente`,
             error: false
@@ -348,6 +378,16 @@ const mailPayment = (userId, totalAmount) => __awaiter(void 0, void 0, void 0, f
             msg: 'Somenthing went wrong',
             error: error,
             data: []
+        });
+        yield prisma.emailLog.update({
+            data: {
+                sent: 0,
+                error: error || '',
+                updatedAt: new Date(),
+            },
+            where: {
+                id: recordIdIn
+            }
         });
     }
 });

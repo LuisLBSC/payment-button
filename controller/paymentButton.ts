@@ -293,7 +293,26 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
 
             const payments = await Promise.all(paymentPromises);
 
-            mailPayment(parseInt(customer.merchantCustomerId), data.amount);
+            const emailLog = await prisma.emailLog.upsert({
+                create: {
+                    entityDescription: "Transaction",
+                    recordId: newTransaction.id,
+                    sent: 0,
+                    createdAt: new Date(),
+                },
+                update: {
+                    sent: 0
+                },
+                
+                where: { 
+                    entityDescription_recordId: {
+                        entityDescription: "Transaction",
+                        recordId: newTransaction.id,
+                    }
+                }
+            });
+
+            mailPayment(parseInt(customer.merchantCustomerId), data.amount, emailLog.id);
             return res.status(200).json({
                 msg: 'ok',
                 error: false,
@@ -358,14 +377,15 @@ export const sendEmailPayment = async (req: Request, res: Response) => {
     try {
         const idUser = req.body.userId;
         const amount = req.body.totalAmount;
-        if (!idUser && !amount) {
+        const recordId = parseInt(req.body.recordId);
+        if (!idUser && !amount && !recordId) {
             return res.status(400).json({
-                msg: "Se requiere email y monto",
+                msg: "Se requiere email, monto y registroId",
                 error: true,
                 data: []
             });
         }
-        mailPayment(idUser, amount);
+        mailPayment(idUser, amount, recordId);
 
         return res.json({
             msg: `Correo de pago enviado correctamente`,
@@ -382,13 +402,14 @@ export const sendEmailPayment = async (req: Request, res: Response) => {
     }
 }
 
-export const mailPayment = async (userId?: number, totalAmount?: number) => {
+export const mailPayment = async (userId?: number, totalAmount?: number, recordIdIn?: number) => {
     try {
         const idUser = userId;
         const finalAmount = totalAmount;
-        if (!idUser && !finalAmount) {
+        const recordId = recordIdIn;
+        if (!idUser && !finalAmount && !recordId) {
             console.debug({
-                msg: "Se requiere email y monto",
+                msg: "Se requiere email, monto y registroId",
                 error: true,
                 data: []
             });
@@ -402,8 +423,19 @@ export const mailPayment = async (userId?: number, totalAmount?: number) => {
             /\${totalAmount}/g,
             finalAmount
         );
-        if (fromEmail && existingUser && htmlEmailReplaced && existingUser)
+        if (fromEmail && existingUser && htmlEmailReplaced && existingUser){
             sendEmail(fromEmail.value || '', existingUser.email, '', htmlEmailReplaced, titleEmail.value, 'Info');
+            await prisma.emailLog.update({
+                data: {
+                    sent: 1,
+                    email: existingUser.email,
+                    updatedAt: new Date(),
+                },
+                where: {
+                    id: recordId
+                }
+            })
+        }
 
         console.debug({
             msg: `Correo de pago enviado correctamente`,
@@ -416,5 +448,15 @@ export const mailPayment = async (userId?: number, totalAmount?: number) => {
             data: []
 
         });
+        await prisma.emailLog.update({
+            data: {
+                sent: 0,
+                error: error || '',
+                updatedAt: new Date(),
+            },
+            where: {
+                id: recordIdIn
+            }
+        })
     }
 }

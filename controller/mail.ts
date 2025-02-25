@@ -8,7 +8,7 @@ export const sendEmail = async (
     text: string,
     html: string,
     subject: string,
-    typeEmail: string
+    typeEmail: string,
   ) => {
     try {
         const mailTransporter = await transporter();
