@@ -28,8 +28,8 @@ const getAllPaymentsByUser = (req, res) => __awaiter(void 0, void 0, void 0, fun
         if (!user) {
             return res.status(404).json({ msg: "Usuario no encontrado", error: true });
         }
-        const isAdmin = user.profile.name === "ADMIN";
-        if (!isAdmin) {
+        const isCustomer = user.profile.name === "CUSTOMER";
+        if (isCustomer) {
             filters.customerId = user.id;
         }
         if (!dateStart || !dateEnd) {

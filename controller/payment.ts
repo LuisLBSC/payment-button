@@ -29,9 +29,9 @@ export const getAllPaymentsByUser = async(req: Request, res: Response) => {
             return res.status(404).json({msg: "Usuario no encontrado", error: true});
         }
 
-        const isAdmin = user.profile.name === "ADMIN";
+        const isCustomer = user.profile.name === "CUSTOMER";
 
-        if(!isAdmin){
+        if(isCustomer){
             filters.customerId = user.id;
         }
 
