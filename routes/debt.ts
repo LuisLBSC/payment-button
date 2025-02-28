@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {getAllDebtsByUser, getDebtById, saveDebt} from "../controller/debt";
+import {getAllDebtsByFilters, getDebtById, saveDebt} from "../controller/debt";
 import { validateJWT } from "../middlewares/validate-jwt";
 import { check } from "express-validator";
 import { validateFields } from "../middlewares/validate-fields";
@@ -7,7 +7,7 @@ const router = Router();
 
 router.get('/', 
     validateJWT,
-    getAllDebtsByUser);
+    getAllDebtsByFilters);
 router.get('/:id',
     validateJWT,
     getDebtById);

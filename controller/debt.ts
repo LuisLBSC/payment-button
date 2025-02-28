@@ -3,7 +3,7 @@ import e, { Request, Response } from "express"
 
 const prisma = new PrismaClient();
 
-export const getAllDebtsByUser = async(req: Request, res: Response) => {
+export const getAllDebtsByFilters = async(req: Request, res: Response) => {
     try {
         const {
             liquidationCode,
@@ -19,7 +19,32 @@ export const getAllDebtsByUser = async(req: Request, res: Response) => {
         if (localCode) filters.localCode = { contains: localCodeExt, mode: 'insensitive' };
         if (actionLiquidationType) filters.actionLiquidationType = parseInt(actionLiquidationType as string, 10);
 
-        const debts = await prisma.debt.findMany({where: filters});
+        const debts = await prisma.debt.findMany({
+            where: {
+                ...filters,
+                payment: {
+                    none: {
+                        OR: [
+                            {
+                                transaction: {
+                                    state: 'PROCESADO'
+                                }
+                            },
+                            {
+                                message: { contains: 'Transaccion aprobada', mode: 'insensitive'}
+                            }
+                        ]
+                    }
+                }
+            },
+            include: {
+                payment: {
+                    include: {
+                        transaction: true
+                    }
+                }
+            }
+        });
 
         res.json({
             msg: 'ok',

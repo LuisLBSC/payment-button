@@ -9,10 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteDebtById = exports.saveDebt = exports.getDebtById = exports.getAllDebtsByUser = void 0;
+exports.deleteDebtById = exports.saveDebt = exports.getDebtById = exports.getAllDebtsByFilters = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-const getAllDebtsByUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllDebtsByFilters = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { liquidationCode, localCode, actionLiquidationType, ext } = req.query;
         const filters = {};
@@ -25,7 +25,29 @@ const getAllDebtsByUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
             filters.localCode = { contains: localCodeExt, mode: 'insensitive' };
         if (actionLiquidationType)
             filters.actionLiquidationType = parseInt(actionLiquidationType, 10);
-        const debts = yield prisma.debt.findMany({ where: filters });
+        const debts = yield prisma.debt.findMany({
+            where: Object.assign(Object.assign({}, filters), { payment: {
+                    none: {
+                        OR: [
+                            {
+                                transaction: {
+                                    state: 'PROCESADO'
+                                }
+                            },
+                            {
+                                message: { contains: 'Transaccion aprobada', mode: 'insensitive' }
+                            }
+                        ]
+                    }
+                } }),
+            include: {
+                payment: {
+                    include: {
+                        transaction: true
+                    }
+                }
+            }
+        });
         res.json({
             msg: 'ok',
             error: false,
@@ -41,7 +63,7 @@ const getAllDebtsByUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
         });
     }
 });
-exports.getAllDebtsByUser = getAllDebtsByUser;
+exports.getAllDebtsByFilters = getAllDebtsByFilters;
 const getDebtById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
