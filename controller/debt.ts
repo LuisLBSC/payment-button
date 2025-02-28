@@ -17,8 +17,27 @@ export const getAllDebtsByFilters = async(req: Request, res: Response) => {
         if (ext && ext.length > 0) localCodeExt = localCodeExt?.concat(` LC:${ext}`);
         if (liquidationCode) filters.liquidationCode = { contains: liquidationCode, mode: 'insensitive' };
         if (localCode) filters.localCode = { contains: localCodeExt, mode: 'insensitive' };
-        if (actionLiquidationType) filters.actionLiquidationType = parseInt(actionLiquidationType as string, 10);
-
+        if (actionLiquidationType){
+            switch (actionLiquidationType) {
+                case '1':
+                    filters.liquidationState = 2;
+                    filters.actionLiquidationType = {
+                        in: [2, 3],
+                    };
+                    break;
+                case '2':
+                    filters.liquidationState = 2;
+                    break;
+                case '3':
+                    filters.liquidationState = 2;
+                    filters.actionLiquidationType = {
+                        notIn: [2, 3, 7, 9, 64, 65, 66, 67],
+                    };
+                    break;
+                default:
+                    console.log('No actionLiquidationType');
+            }
+        }
         const debts = await prisma.debt.findMany({
             where: {
                 ...filters,
