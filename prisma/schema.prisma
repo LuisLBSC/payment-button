@@ -81,7 +81,7 @@ model Debt {
   titleName             String?
   liquidationCode       String
   shopperName           String
-  identification        Int?
+  identification        String?   @db.VarChar
   courtCosts            Int?
   localCode             String
   plotId                Int

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteDebtById = exports.saveDebt = exports.getDebtById = exports.getAllDebtsByFilters = void 0;
+exports.deleteDebtById = exports.getDebtById = exports.getAllDebtsByFilters = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getAllDebtsByFilters = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -90,44 +90,6 @@ const getDebtById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.getDebtById = getDebtById;
-const saveDebt = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { liquidationId, titleName, liquidationCode, debtDate, shopperName, identification, courtCosts, localCode, plotId, actionLiquidationType, liquidationState, year, surcharge, discount, interest, coercive, totalAmount } = req.body;
-        const newDebt = yield prisma.debt.create({
-            data: {
-                liquidationId,
-                titleName,
-                liquidationCode,
-                debtDate,
-                shopperName,
-                identification,
-                courtCosts,
-                localCode,
-                plotId,
-                actionLiquidationType,
-                liquidationState,
-                year,
-                surcharge,
-                discount,
-                interest,
-                coercive,
-                totalAmount
-            }
-        });
-        res.json({
-            newDebt,
-            msg: `Deuda ${newDebt.titleName} creada`
-        });
-    }
-    catch (error) {
-        console.log(error);
-        res.status(500).json({
-            msg: 'Something went wrong',
-            error
-        });
-    }
-});
-exports.saveDebt = saveDebt;
 const deleteDebtById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;

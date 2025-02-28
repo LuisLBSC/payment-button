@@ -90,63 +90,6 @@ export const getDebtById = async(req: Request, res: Response) => {
     }
 }
 
-export const saveDebt = async(req: Request, res: Response) => {
-    try {
-        const {
-            liquidationId,
-            titleName,
-            liquidationCode,
-            debtDate,
-            shopperName,
-            identification,
-            courtCosts,
-            localCode,
-            plotId,
-            actionLiquidationType,
-            liquidationState,
-            year,
-            surcharge,
-            discount,
-            interest,
-            coercive,
-            totalAmount
-        } = req.body
-
-        const newDebt = await prisma.debt.create({
-            data: {
-                liquidationId,
-                titleName,
-                liquidationCode,
-                debtDate,
-                shopperName,
-                identification,
-                courtCosts,
-                localCode,
-                plotId,
-                actionLiquidationType,
-                liquidationState,
-                year,
-                surcharge,
-                discount,
-                interest,
-                coercive,
-                totalAmount
-            }
-        });
-
-        res.json({
-            newDebt,
-            msg: `Deuda ${newDebt.titleName} creada`
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            msg: 'Something went wrong',
-            error
-        });
-    }
-}
-
 export const deleteDebtById = async(req: Request, res: Response) => {
     try {
         const {id} = req.params;
