@@ -90,7 +90,12 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
         let cartItems: { [key: string]: string } = {};
         let valueNoTax = 0;
         let valueTax = 0;
+        const customParameters: { [key: string]: string } = {};
         debts.forEach(debt => {
+            customParameters[`customParameters[SHOPPER_ITEM_${itemIndex}]`] = JSON.stringify({
+                debtId: debt.id.toString(),
+                liquidationId: debt.liquidationId.toString(),
+            });
             const tax = debt.totalAmount * percentTax;
             const debtNoTax = debt.totalAmount - tax;
             valueTax += tax;
@@ -132,12 +137,12 @@ export const requestCheckout = async (req: Request, res: Response): Promise<Resp
             'customParameters[SHOPPER_VAL_BASEIMP]': (valueNoTax - 1).toFixed(2),
             'customParameters[SHOPPER_VAL_IVA]': valueTax.toFixed(2),
             'customParameters[SHOPPER_VERSIONDF]': '2',
+            ...customParameters,
             'testMode': 'EXTERNAL',
             ...cartItems
         };
 
         const query = querystring.stringify(queryObject);
-
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}?${query}`;
 
         const { data } = await axios.post(url, {},
@@ -266,13 +271,42 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                 },
                 where: { trxId: data.id }
             });
+            
+            const paymentPromises = cart.items.map(async (item: any, index: number) => {
+                const shopperItem = JSON.parse(customParameters[`SHOPPER_ITEM_${index}`] || '{}');
+                const debtId = shopperItem.debtId || '3';
+                const liquidationId = shopperItem.liquidationId || '0';
 
-            const paymentPromises = cart.items.map(async (item: any) => {
+                if (isNaN(parseInt(debtId))) {
+                    throw new Error(`Invalid debtId: ${debtId}`);
+                }
+                console.log(`\n\ndeuda procesar: ${debtId}\n\n`);
+                const debtProcesed = await prisma.debt.findUnique({where : { id: parseInt(debtId)}});
+
+                const cabResult = await prisma.$queryRaw`
+                    SELECT * FROM public.insertar_boton_pago_cabecera(
+                        ${parseInt(liquidationId)},
+                        ${debtProcesed?.totalAmount},
+                        ${30},
+                        ${debtProcesed?.discount},
+                        ${debtProcesed?.surcharge},
+                        ${debtProcesed?.interest},
+                        ${resultDetails.ExtendedDescription},
+                        ${parseInt(customer.merchantCustomerId)},
+                        ${customer.givenName}, 
+                        '', 
+                        ${customer.ip}, 
+                        ${debtProcesed?.coercive}
+                    )
+                `;
+                console.log(cabResult);
+                const { r_liquidacion, r_fecha_pago, r_num_comprobante, r_id_fina_ren_pago } = cabResult[0];
+            
                 const payment = await prisma.payment.create({
                     data: {
                         customerId: parseInt(customer.merchantCustomerId),
                         cashier: 30,
-                        debtId: 3,
+                        debtId: parseInt(debtId),
                         ipSession: customer.ip,
                         cardNumber: `${card.bin}XXXXXX${card.last4Digits}`,
                         cardExpirationDate: `${card.expiryMonth}/${card.expiryYear}`,
@@ -288,6 +322,20 @@ export const savePaymentWithCheckoutId = async (req: Request, res: Response): Pr
                     },
                 });
 
+                const expiryDate = `${card.expiryYear}-${card.expiryMonth}-01`;
+                const detResult = await prisma.$executeRaw`
+                    SELECT public.insertar_boton_pago_detalle(
+                        ${1}::bigint,
+                        ${r_id_fina_ren_pago}::bigint,
+                        ${parseFloat(item.price).toFixed(2)}::numeric(10,2),
+                        ${1}::bigint, 
+                        ${`${card.bin}${card.last4Digits}`}::varchar(80), 
+                        ${`${expiryDate}`}::timestamp(6),
+                        ${`${resultDetails.AuthCode}`}::varchar(100),
+                        ${`${resultDetails.ReferenceNo}`}::varchar(60), 
+                        ${`${card.holder}`}::varchar
+                    )
+                `;
                 return payment;
             });
 

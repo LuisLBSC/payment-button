@@ -81,7 +81,12 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
         let cartItems = {};
         let valueNoTax = 0;
         let valueTax = 0;
+        const customParameters = {};
         debts.forEach(debt => {
+            customParameters[`customParameters[SHOPPER_ITEM_${itemIndex}]`] = JSON.stringify({
+                debtId: debt.id.toString(),
+                liquidationId: debt.liquidationId.toString(),
+            });
             const tax = debt.totalAmount * percentTax;
             const debtNoTax = debt.totalAmount - tax;
             valueTax += tax;
@@ -93,7 +98,7 @@ const requestCheckout = (req, res) => __awaiter(void 0, void 0, void 0, function
             cartItems[`cart.items[${itemIndex}].quantity`] = '1';
             itemIndex++;
         });
-        const queryObject = Object.assign({ entityId, amount: total.toFixed(2), currency, paymentType: 'DB', 'customer.givenName': customer.name, 'customer.middleName': customer.middlename, 'customer.surname': customer.lastname, 'customer.ip': req.ip, 'customer.merchantCustomerId': customer.id.toString(), 'merchantTransactionId': transaction, 'customer.email': customer.email, 'customer.identificationDocType': 'IDCARD', 'customer.identificationDocId': customer.username, 'customer.phone': customer.phone, 'billing.street1': customer.address, 'billing.country': customer.country, 'billing.postcode': customer.postCode, 'shipping.street1': customer.address, 'shipping.country': customer.country, 'risk.parameters[SHOPPER_MID]': mid_risk, 'customParameters[SHOPPER_MID]': mid, 'customParameters[SHOPPER_TID]': tid, 'customParameters[SHOPPER_ECI]': '0103910', 'customParameters[SHOPPER_PSERV]': '17913101', 'customParameters[SHOPPER_VAL_BASE0]': 1, 'customParameters[SHOPPER_VAL_BASEIMP]': (valueNoTax - 1).toFixed(2), 'customParameters[SHOPPER_VAL_IVA]': valueTax.toFixed(2), 'customParameters[SHOPPER_VERSIONDF]': '2', 'testMode': 'EXTERNAL' }, cartItems);
+        const queryObject = Object.assign(Object.assign(Object.assign({ entityId, amount: total.toFixed(2), currency, paymentType: 'DB', 'customer.givenName': customer.name, 'customer.middleName': customer.middlename, 'customer.surname': customer.lastname, 'customer.ip': req.ip, 'customer.merchantCustomerId': customer.id.toString(), 'merchantTransactionId': transaction, 'customer.email': customer.email, 'customer.identificationDocType': 'IDCARD', 'customer.identificationDocId': customer.username, 'customer.phone': customer.phone, 'billing.street1': customer.address, 'billing.country': customer.country, 'billing.postcode': customer.postCode, 'shipping.street1': customer.address, 'shipping.country': customer.country, 'risk.parameters[SHOPPER_MID]': mid_risk, 'customParameters[SHOPPER_MID]': mid, 'customParameters[SHOPPER_TID]': tid, 'customParameters[SHOPPER_ECI]': '0103910', 'customParameters[SHOPPER_PSERV]': '17913101', 'customParameters[SHOPPER_VAL_BASE0]': 1, 'customParameters[SHOPPER_VAL_BASEIMP]': (valueNoTax - 1).toFixed(2), 'customParameters[SHOPPER_VAL_IVA]': valueTax.toFixed(2), 'customParameters[SHOPPER_VERSIONDF]': '2' }, customParameters), { 'testMode': 'EXTERNAL' }), cartItems);
         const query = querystring_1.default.stringify(queryObject);
         const url = `${process.env.DATAFAST_URL}${process.env.DATAFAST_URL_PATH}?${query}`;
         const { data } = yield axios_1.default.post(url, {}, {
@@ -209,12 +214,38 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                 },
                 where: { trxId: data.id }
             });
-            const paymentPromises = cart.items.map((item) => __awaiter(void 0, void 0, void 0, function* () {
+            const paymentPromises = cart.items.map((item, index) => __awaiter(void 0, void 0, void 0, function* () {
+                const shopperItem = JSON.parse(customParameters[`SHOPPER_ITEM_${index}`] || '{}');
+                const debtId = shopperItem.debtId || '3';
+                const liquidationId = shopperItem.liquidationId || '0';
+                if (isNaN(parseInt(debtId))) {
+                    throw new Error(`Invalid debtId: ${debtId}`);
+                }
+                console.log(`\n\ndeuda procesar: ${debtId}\n\n`);
+                const debtProcesed = yield prisma.debt.findUnique({ where: { id: parseInt(debtId) } });
+                const cabResult = yield prisma.$queryRaw `
+                    SELECT * FROM public.insertar_boton_pago_cabecera(
+                        ${parseInt(liquidationId)},
+                        ${debtProcesed === null || debtProcesed === void 0 ? void 0 : debtProcesed.totalAmount},
+                        ${30},
+                        ${debtProcesed === null || debtProcesed === void 0 ? void 0 : debtProcesed.discount},
+                        ${debtProcesed === null || debtProcesed === void 0 ? void 0 : debtProcesed.surcharge},
+                        ${debtProcesed === null || debtProcesed === void 0 ? void 0 : debtProcesed.interest},
+                        ${resultDetails.ExtendedDescription},
+                        ${parseInt(customer.merchantCustomerId)},
+                        ${customer.givenName}, 
+                        '', 
+                        ${customer.ip}, 
+                        ${debtProcesed === null || debtProcesed === void 0 ? void 0 : debtProcesed.coercive}
+                    )
+                `;
+                console.log(cabResult);
+                const { r_liquidacion, r_fecha_pago, r_num_comprobante, r_id_fina_ren_pago } = cabResult[0];
                 const payment = yield prisma.payment.create({
                     data: {
                         customerId: parseInt(customer.merchantCustomerId),
                         cashier: 30,
-                        debtId: 3,
+                        debtId: parseInt(debtId),
                         ipSession: customer.ip,
                         cardNumber: `${card.bin}XXXXXX${card.last4Digits}`,
                         cardExpirationDate: `${card.expiryMonth}/${card.expiryYear}`,
@@ -229,6 +260,20 @@ const savePaymentWithCheckoutId = (req, res) => __awaiter(void 0, void 0, void 0
                         createdAt: new Date(),
                     },
                 });
+                const expiryDate = `${card.expiryYear}-${card.expiryMonth}-01`;
+                const detResult = yield prisma.$executeRaw `
+                    SELECT public.insertar_boton_pago_detalle(
+                        ${1}::bigint,
+                        ${r_id_fina_ren_pago}::bigint,
+                        ${parseFloat(item.price).toFixed(2)}::numeric(10,2),
+                        ${1}::bigint, 
+                        ${`${card.bin}${card.last4Digits}`}::varchar(80), 
+                        ${`${expiryDate}`}::timestamp(6),
+                        ${`${resultDetails.AuthCode}`}::varchar(100),
+                        ${`${resultDetails.ReferenceNo}`}::varchar(60), 
+                        ${`${card.holder}`}::varchar
+                    )
+                `;
                 return payment;
             }));
             const payments = yield Promise.all(paymentPromises);

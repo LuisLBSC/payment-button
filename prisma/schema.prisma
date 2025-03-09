@@ -81,7 +81,7 @@ model Debt {
   titleName             String?
   liquidationCode       String
   shopperName           String
-  identification        String?   @db.VarChar
+  identification        String?
   courtCosts            Int?
   localCode             String?
   plotId                Int?
@@ -153,15 +153,98 @@ model Entity {
 }
 
 model EmailLog {
-  id              Int      @id @default(autoincrement())
-  entityDescription String  
-  recordId      Int 
-  sent            Int      @default(0)
-  email           String?
-  error           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  entityDescription String
+  sent              Int      @default(0)
+  email             String?
+  error             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  recordId          Int
 
-  @@index([entityDescription, recordId])
   @@unique([entityDescription, recordId])
+  @@index([entityDescription, recordId])
+}
+
+model cliente {
+  id                              BigInt    @id @default(autoincrement())
+  identificacion                  String?   @db.VarChar(250)
+  ruc                             String?   @db.VarChar(3)
+  tipo_identificacion             BigInt?
+  nombre                          String?   @db.VarChar(250)
+  apellido                        String?   @db.VarChar(250)
+  direccion                       String?   @db.VarChar(250)
+  email                           String?   @db.VarChar(500)
+  telefono                        String?   @db.VarChar(250)
+  celular                         String?   @db.VarChar(250)
+  fecha_nacimiento                DateTime? @db.Date
+  genero                          BigInt?
+  discapacidad                    Boolean?  @default(false)
+  num_conadis                     String?   @db.VarChar(10)
+  estado                          Boolean?  @default(true)
+  identificacion_generada         Boolean?  @default(false)
+  usuario_creacion                String?   @db.VarChar(100)
+  fecha_creacion                  DateTime? @db.Timestamp(6)
+  usuario_modificacion            String?   @db.VarChar(100)
+  fecha_modificacion              DateTime? @db.Timestamp(6)
+  clasificacion_prov              BigInt?
+  tipo_prov                       BigInt?
+  contribuyente_especial          Boolean?
+  resolucion_sri                  String?   @db.VarChar(255)
+  tipo_de_negocio                 String?   @db.VarChar(255)
+  canton                          BigInt?
+  porcentaje_discapacidad         Int?      @db.SmallInt
+  enfermedad_catastrofica         Boolean?  @default(false)
+  estado_civil                    String?   @db.VarChar
+  es_persona                      Boolean?  @default(true)
+  nombre_comercial                String?   @db.VarChar(255)
+  razon_social                    String?   @db.VarChar(255)
+  titulo_prof                     String?   @db.VarChar(255)
+  codigo                          String?   @db.VarChar(250)
+  contribuyente_cementerio        Boolean?  @default(false)
+  apellido_casada                 String?   @db.VarChar(250)
+  interno                         Boolean?  @default(true)
+  sexo                            Boolean?
+  tipo_persona                    String?   @db.VarChar(10)
+  validado                        Boolean?  @default(false)
+  contribuyente_cementerio_nombre String?   @db.VarChar
+  tiene_ruc                       Boolean?  @default(false)
+  usuario_validador               BigInt?
+  consolidado                     String?   @db.VarChar(500)
+  multi_propietario               Boolean?  @default(false)
+  valiador_asignado               BigInt?
+  valid_nodos                     Boolean?  @default(false)
+  id_referencias_consolidados     String?   @db.VarChar
+  valid_admin                     Boolean?  @default(false)
+  representante_legal             String?   @db.VarChar
+  id_representante_legal          BigInt?
+  condicion_ciudadano             String?   @db.VarChar
+  fecha_expedicion                DateTime? @db.Timestamp(6)
+
+  @@index([id])
+  @@index([codigo], map: "cliente_idx_codigo")
+  @@index([apellido], map: "idx_cliente_apellido")
+  @@index([fecha_modificacion], map: "idx_cliente_fecha")
+  @@index([identificacion], map: "idx_cliente_identificacion")
+  @@index([nombre], map: "idx_cliente_nombre")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model deuda {
+  recargo    Decimal? @db.Decimal(10, 2)
+  descuento  Decimal? @db.Decimal(10, 2)
+  interes    Decimal? @db.Decimal(10, 2)
+  coactiva   Decimal? @db.Decimal(10, 2)
+  total_pago Decimal? @db.Decimal(10, 2)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model predio {
+  clave_cat     String? @db.VarChar(100)
+  id_predio     BigInt?
+  codigo_predio String? @db.VarChar
+
+  @@ignore
 }
