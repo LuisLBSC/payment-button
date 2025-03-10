@@ -38,6 +38,14 @@ export const getAllDebtsByFilters = async(req: Request, res: Response) => {
                     console.log('No actionLiquidationType');
             }
         }
+        const debtsQuery = await prisma.$executeRaw`
+                SELECT * FROM public.consultar_deuda_liquidacion_plalterno(
+                    ${localCode}::varchar,
+                    ${`${ext ? ext: 0}`}::varchar,
+                    ${actionLiquidationType}::integer
+                )
+            `;
+        console.log(debtsQuery);
         const debts = await prisma.debt.findMany({
             where: {
                 ...filters,

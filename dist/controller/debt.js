@@ -44,6 +44,14 @@ const getAllDebtsByFilters = (req, res) => __awaiter(void 0, void 0, void 0, fun
                     console.log('No actionLiquidationType');
             }
         }
+        const debtsQuery = yield prisma.$executeRaw `
+                SELECT * FROM public.consultar_deuda_liquidacion_plalterno(
+                    ${localCode}::varchar,
+                    ${`${ext ? ext : 0}`}::varchar,
+                    ${actionLiquidationType}::integer
+                )
+            `;
+        console.log(debtsQuery);
         const debts = yield prisma.debt.findMany({
             where: Object.assign(Object.assign({}, filters), { payment: {
                     none: {
